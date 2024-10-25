@@ -36,7 +36,9 @@ def connexion(request):
 
 @login_required
 def acceuil(request):
-    return render(request, 'accueil.html')
+    # Récupère tous les fichiers uploadés par l'utilisateur connecté
+    user_files = UploadedFile.objects.filter(user=request.user)
+    return render(request, 'accueil.html', {'files': user_files})
 
 def deconnexion(request):
     logout(request)
