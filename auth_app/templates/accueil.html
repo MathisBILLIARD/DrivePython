@@ -376,9 +376,7 @@
             </button>
             <h2 class="text-lg font-semibold mb-4">Hello {{ request.user.username }} !</h2>
             <button id="logoutBtn" class="bg-[var(--primary-color)] text-white px-4 py-2 rounded w-full mb-3   transition-all duration-200 hover:scale-95">
-                <a href="{% url 'deconnexion' %}">
                     Deconnexion
-                </a>
             </button>
             <button id="deleteAccountBtn" class="bg-red-500 text-white px-4 py-2 rounded w-full hover:bg-red-600 transition-all duration-200 hover:scale-95">
                     Delete account
@@ -449,9 +447,12 @@ logoutBtn.onclick = function() {
                 'Logged out!',
                 'You have been successfully logged out.',
                 'success'
-            );
+            ).then(() => {
+                // Redirige vers l'URL de déconnexion
+                window.location.href = "{% url 'deconnexion' %}";
+            });
         }
-    })
+    });
 }
 deleteAccountBtn.onclick = function() {
     Swal.fire({
@@ -729,18 +730,49 @@ window.addEventListener('click', function(event) {
 // Gérer l'upload de fichiers ou dossiers
 document.querySelector("#upload-menu").addEventListener("click", function(event) {
     const target = event.target.closest("li");
-    if (target && target.textContent.includes("File")) {
+    if (target) {
         let input = document.createElement('input');
         input.type = 'file';
-        input.multiple = true;
-        input.click();
-    } else if (target && target.textContent.includes("Folder")) {
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.webkitdirectory = true;
-        input.click();
+        
+        // Vérifie si l'utilisateur a choisi "File" ou "Folder"
+        if (target.textContent.includes("File")) {
+            input.multiple = true;  // Permet la sélection de plusieurs fichiers
+        } else if (target.textContent.includes("Folder")) {
+            input.webkitdirectory = true;  // Permet la sélection de dossiers
+        }
+
+        // Crée un formulaire dynamique
+        let formData = new FormData();
+        
+        input.addEventListener('change', function() {
+            // Ajoute les fichiers sélectionnés au FormData
+            for (let i = 0; i < input.files.length; i++) {
+                formData.append('files', input.files[i]); // Remplace 'files' par le nom attendu par ton backend
+            }
+
+            // Envoie les données à l'URL après la soumission
+            fetch("{% url 'upload_file' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous que le jeton CSRF est inclus pour Django
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Traitez la réponse ici (par exemple, afficher un message de succès)
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                // Traitez les erreurs ici
+            });
+        });
+
+        input.click(); // Ouvre le sélecteur de fichiers ou dossiers
     }
 });
+
 
 //Sidebar Ouverture/fermeture
 const body = document.body,

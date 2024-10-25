@@ -72,9 +72,9 @@ def upload_file(request):
         uploaded_file_instance.save()
 
         # Redirection ou message de succès
-        return render(request, 'accueil.html', {'message': 'Fichier téléchargé avec succès !'})
+        return render(request, 'accueil.html', {'files': user_files})
 
-    return render(request, 'accueil.html')
+    return render(request, 'accueil.html', {'files': user_files})
 
 def style(request):
     return render(request, 'style.css', content_type='text/css')
