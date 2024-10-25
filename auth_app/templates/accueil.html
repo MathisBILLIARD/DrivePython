@@ -103,7 +103,18 @@
                         <ul class="py-2">
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-file text-[16px] mr-2'></i>
-                                Upload File
+                                <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data" id="fileUploadForm">
+                                    {% csrf_token %}
+                                    <input type="file" name="file" id="fileInput" style="display: none;" onchange="submitForm()">
+                                    <button type="button" onclick="document.getElementById('fileInput').click();">Upload File</button>
+                                </form>
+                                <script>
+                                    function submitForm() {
+                                        // Soumettre le formulaire lorsque le fichier est sélectionné
+                                        document.getElementById('fileUploadForm').submit();
+                                    }
+                                </script>
+                                
                             </li>
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
@@ -728,50 +739,21 @@ window.addEventListener('click', function(event) {
 });
 
 // Gérer l'upload de fichiers ou dossiers
-document.querySelector("#upload-menu").addEventListener("click", function(event) {
+/*document.querySelector("#upload-menu").addEventListener("click", function(event) {
     const target = event.target.closest("li");
-    if (target) {
+    if (target && target.textContent.includes("File")) {
         let input = document.createElement('input');
         input.type = 'file';
-        
-        // Vérifie si l'utilisateur a choisi "File" ou "Folder"
-        if (target.textContent.includes("File")) {
-            input.multiple = true;  // Permet la sélection de plusieurs fichiers
-        } else if (target.textContent.includes("Folder")) {
-            input.webkitdirectory = true;  // Permet la sélection de dossiers
-        }
-
-        // Crée un formulaire dynamique
-        let formData = new FormData();
-        
-        input.addEventListener('change', function() {
-            // Ajoute les fichiers sélectionnés au FormData
-            for (let i = 0; i < input.files.length; i++) {
-                formData.append('files', input.files[i]); // Remplace 'files' par le nom attendu par ton backend
-            }
-
-            // Envoie les données à l'URL après la soumission
-            fetch("{% url 'upload_file' %}", {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous que le jeton CSRF est inclus pour Django
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                // Traitez la réponse ici (par exemple, afficher un message de succès)
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                // Traitez les erreurs ici
-            });
-        });
-
-        input.click(); // Ouvre le sélecteur de fichiers ou dossiers
+        input.multiple = true;
+        input.click();
+    } else if (target && target.textContent.includes("Folder")) {
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.webkitdirectory = true;
+        input.click();
     }
-});
+});*/
+
 
 
 //Sidebar Ouverture/fermeture

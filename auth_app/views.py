@@ -70,6 +70,7 @@ def upload_file(request):
             file_size=uploaded_file.size
         )
         uploaded_file_instance.save()
+        user_files = UploadedFile.objects.filter(user=request.user)
 
         # Redirection ou message de succès
         return render(request, 'accueil.html', {'files': user_files})
