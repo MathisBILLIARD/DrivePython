@@ -8,7 +8,7 @@ import os
 from django.conf import settings
 import requests
 from django.core.files.storage import default_storage
-from .models import UploadedFile
+from .models import UploadedFile, Folder
 
 # Create your views here.
 def inscription(request):
@@ -38,7 +38,8 @@ def connexion(request):
 def acceuil(request):
     # Récupère tous les fichiers uploadés par l'utilisateur connecté
     user_files = UploadedFile.objects.filter(user=request.user)
-    return render(request, 'accueil.html', {'files': user_files})
+    user_folders = Folder.objects.filter(user=request.user)
+    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
 
 def deconnexion(request):
     logout(request)
@@ -71,11 +72,59 @@ def upload_file(request):
         )
         uploaded_file_instance.save()
         user_files = UploadedFile.objects.filter(user=request.user)
+        user_folders = Folder.objects.filter(user=request.user)
 
         # Redirection ou message de succès
-        return render(request, 'accueil.html', {'files': user_files})
+        return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
 
-    return render(request, 'accueil.html', {'files': user_files})
+    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+
+def upload_folder(request):
+    if request.method == 'POST' and request.FILES.getlist('files'):
+        files = request.FILES.getlist('files')  # Récupère tous les fichiers uploadés
+        folder_name = request.POST.get('folder_name')  # Récupère le nom du dossier
+
+        # Définir le dossier utilisateur
+        user_folder = f'user_{request.user.id}'
+        base_destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
+        folder_destination = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder)
+
+        # Créer le dossier de destination
+        os.makedirs(base_destination_folder, exist_ok=True)
+        uploaded_folder_instance = Folder(
+                user=request.user,
+                folder_name=folder_name,
+                folder_path=folder_destination
+            )
+        uploaded_folder_instance.save()
+        # Parcours chaque fichier uploadé
+        for uploaded_file in files:
+            # Chemin de sauvegarde complet pour chaque fichier
+            file_path = os.path.join(base_destination_folder, uploaded_file.name)
+
+            # Enregistre le fichier sur le serveur
+            with default_storage.open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+
+            # Sauvegarde dans la base de données si nécessaire
+            uploaded_file_instance = UploadedFile(
+                user=request.user,
+                file_name=uploaded_file.name,
+                file_path=file_path,
+                file_size=uploaded_file.size
+            )
+            uploaded_file_instance.save()
+
+
+        user_files = UploadedFile.objects.filter(user=request.user)
+        user_folders = Folder.objects.filter(user=request.user)
+
+        # Redirection ou message de succès
+        return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+
+    return render(request, 'accueil.html')
+
 
 def style(request):
     return render(request, 'style.css', content_type='text/css')

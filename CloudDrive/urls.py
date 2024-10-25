@@ -10,6 +10,7 @@ urlpatterns = [
     path('deconnexion/', views.deconnexion, name='deconnexion'),
     path('upload_file/', views.upload_file, name='upload_file'),
     path('user_files/', views.user_files, name='user_files'),
+    path('upload_folder/', views.upload_folder, name='upload_folder'),
     path('style/', views.style, name='style'),
 
 ]

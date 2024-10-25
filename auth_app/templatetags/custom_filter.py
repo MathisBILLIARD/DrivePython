@@ -14,3 +14,10 @@ def filesize_display(file_size, unit=''):
         return f"{round(file_size / 1000)} ko"  # Divise par 1024 et garde 2 chiffres significatifs
     else:
         return f"{round(file_size / 1000000)} Mo"  # Divise par 1048576 et garde 2 chiffres significatifs
+
+@register.filter
+def foldername_display(folder_path):
+    """
+    Extrait le nom du dossier à partir du chemin complet.
+    """
+    return folder_path.split('/')[-2]
