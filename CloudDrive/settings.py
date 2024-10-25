@@ -79,7 +79,7 @@ DATABASES = {
     'ENGINE': 'django.db.backends.mysql',
     'NAME': 'django',
     'USER': 'root', 
-    'PASSWORD':'Polda510Polda510',
+    'PASSWORD':'Hadrigaming62',
     'HOST': '127.0.0.1', 
     'PORT': '3306', 
     }
@@ -131,3 +131,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
