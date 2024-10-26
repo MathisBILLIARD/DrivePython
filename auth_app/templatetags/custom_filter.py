@@ -1,4 +1,5 @@
 # Dans le fichier yourapp/templatetags/custom_filters.py
+import os
 from django import template
 
 register = template.Library()
@@ -20,8 +21,7 @@ def foldername_display(folder_path):
     """
     Extrait le nom du dossier à partir du chemin complet.
     """
-    return folder_path.split('/')[-2]
-
+    return os.path.basename(os.path.dirname(folder_path))
 @register.filter
 def sum_files_size(files):
     """

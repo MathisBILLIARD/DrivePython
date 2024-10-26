@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import os
 from django.conf import settings
-import requests
 from django.core.files.storage import default_storage
 from .models import UploadedFile, Folder
 
