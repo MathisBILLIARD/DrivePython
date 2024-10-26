@@ -15,6 +15,7 @@
     </style>
 </head>
 <body>
+    {% load custom_filter %}
     <!-- Sidebar Gauche -->
     <nav class="sidebar fixed top-0 left-0 z-[10] h-full p-[2px] px-5 w-[250px] bg-[var(--sidebar-color)] transition-all duration-500">
         <header class="relative z-50">
@@ -65,9 +66,9 @@
             <div class="storage p-5 bg-[#2e3136] rounded-lg transform -translate-y-12">
                 <span class="text-white text-base">Storage</span>
                 <div class="bg-white rounded-full h-1.5 overflow-hidden my-3 border border-gray-800">
-                    <div class="bg-[var(--primary-color)] w-[70%] h-full"></div>
+                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ files|sum_files_size|usage_percentage }}%;"></div>
                 </div>
-                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">43.9 MB of 100 MB used</p>
+                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ files|sum_files_size|filesize_display }} of 100 Mo used</p>
             </div>
         </div>
     </nav>
@@ -132,22 +133,36 @@
                                     
                                     <!-- Champ caché pour le nom du dossier -->
                                     <input type="hidden" name="folder_name" id="folderNameInput">
-
+                                
                                     <button type="button" onclick="document.getElementById('folderInput').click();">Upload Folder</button>
                                 </form>
+                                
                                 <script>
                                     function submitFolderForm() {
-                                        // Récupérer le nom du dossier à partir du premier fichier sélectionné
                                         const input = document.getElementById('folderInput');
-                                        const firstFile = input.files[0]; // Prendre le premier fichier
+                                        const maxSizeInMB = 40;
+                                        let valid = true;
                                 
-                                        if (firstFile) {
-                                            const folderName = firstFile.webkitRelativePath.split('/')[0]; // Récupérer le nom du dossier
-                                            document.getElementById('folderNameInput').value = folderName; // Ajouter le nom du dossier au champ caché
+                                        // Vérifier chaque fichier pour s'assurer qu'il ne dépasse pas 40 Mo
+                                        for (const file of input.files) {
+                                            if (file.size > maxSizeInMB * 1024 * 1024) {  // 40 Mo en octets
+                                                alert(`Le fichier ${file.name} dépasse la limite de 40 Mo.`);
+                                                valid = false;
+                                                break;
+                                            }
                                         }
                                 
-                                        // Soumettre le formulaire lorsque le dossier est sélectionné
-                                        document.getElementById('folderUploadForm').submit();
+                                        if (valid) {
+                                            // Récupérer le nom du dossier à partir du premier fichier
+                                            const firstFile = input.files[0];
+                                            if (firstFile) {
+                                                const folderName = firstFile.webkitRelativePath.split('/')[0]; // Récupère le nom du dossier
+                                                document.getElementById('folderNameInput').value = folderName; // Remplit le champ caché avec le nom du dossier
+                                            }
+                                
+                                            // Soumettre le formulaire si tous les fichiers respectent la taille limite
+                                            document.getElementById('folderUploadForm').submit();
+                                        }
                                     }
                                 </script>
                                 
