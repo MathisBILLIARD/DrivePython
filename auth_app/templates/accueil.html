@@ -105,13 +105,21 @@
                                 <i class='bx bx-file text-[16px] mr-2'></i>
                                 <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data" id="fileUploadForm">
                                     {% csrf_token %}
-                                    <input type="file" name="file" id="fileInput" style="display: none;" onchange="submitForm()">
+                                    <input type="file" name="file" id="fileInput" style="display: none;" onchange="validateFile()">
                                     <button type="button" onclick="document.getElementById('fileInput').click();">Upload File</button>
                                 </form>
                                 <script>
-                                    function submitForm() {
-                                        // Soumettre le formulaire lorsque le fichier est sélectionné
-                                        document.getElementById('fileUploadForm').submit();
+                                    function validateFile() {
+                                        const fileInput = document.getElementById('fileInput');
+                                        const file = fileInput.files[0];
+                                        const maxSizeInMB = 40;
+                                
+                                        if (file && file.size > maxSizeInMB * 1024 * 1024) {
+                                            alert("Le fichier dépasse la taille limite de 40 Mo.");
+                                            fileInput.value = "";  // Réinitialise l'input file
+                                        } else {
+                                            document.getElementById('fileUploadForm').submit();  // Soumet le formulaire si le fichier est valide
+                                        }
                                     }
                                 </script>
                                 
