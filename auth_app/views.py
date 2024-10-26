@@ -48,6 +48,12 @@ def deconnexion(request):
 def upload_file(request):
     if request.method == 'POST' and request.FILES['file']:
         uploaded_file = request.FILES['file']  # Récupère le fichier uploadé
+        # Vérifier si la somme des tailles des fichiers de l'utilisateur plus le fichier uploader dépasse la limite de 100 Mo
+        user_files = UploadedFile.objects.filter(user=request.user)
+        total_size = sum([file.file_size for file in user_files]) + uploaded_file.size
+        if total_size > 100 * 1024 * 1024:  # 100 Mo en octets
+            messages.error(request, 'La taille totale de vos fichiers dépasse la limite autorisée.')
+            return redirect('accueil')
 
         # Définir le chemin du dossier de destination (par exemple : media/uploads/user_<id>/)
         user_folder = f'user_{request.user.id}'
@@ -83,7 +89,12 @@ def upload_folder(request):
     if request.method == 'POST' and request.FILES.getlist('files'):
         files = request.FILES.getlist('files')  # Récupère tous les fichiers uploadés
         folder_name = request.POST.get('folder_name')  # Récupère le nom du dossier
-
+        # Vérifier si la somme des tailles des fichiers de l'utilisateur plus la taille des fichiers uploader dépasse la limite de 100 Mo
+        user_files = UploadedFile.objects.filter(user=request.user)
+        total_size = sum([file.file_size for file in user_files]) + sum([file.size for file in files])
+        if total_size > 100 * 1024 * 1024:  # 100 Mo en octets
+            messages.error(request, 'La taille totale de vos fichiers dépasse la limite autorisée.')
+            return redirect('accueil')
         # Définir le dossier utilisateur
         user_folder = f'user_{request.user.id}'
         base_destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
