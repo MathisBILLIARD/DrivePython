@@ -280,6 +280,7 @@
     <!-- Grid -->         
         <div id="grid-view" class=" mt-[10px] ">
             {% for folder in folders %}
+            <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
             <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                     <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
@@ -318,6 +319,7 @@
                     </div>     
                 </div>    
             </div>
+            </a>
         {% empty %}
         <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
             <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">

@@ -40,6 +40,17 @@ def acceuil(request):
     user_folders = Folder.objects.filter(user=request.user)
     return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
 
+def display_folder(request, folder_name):
+    # Récupérer les fichiers de l'utilisateur dans le dossier spécifié
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder_name
+    ]
+
+    # Passer `folder_name` directement si vous n'avez pas d'objet `Folder`
+    return render(request, 'folder_files.html', {'files': folder_files, 'folder_name': folder_name})
+
 def deconnexion(request):
     logout(request)
     return redirect('connexion')
