@@ -230,13 +230,22 @@
     <div id="grid-view">
         <div class="grid grid-cols-3 gap-4 mt-3">
             {% for folder in folders %}
+<<<<<<< HEAD
             <div class="flex flex-col space-y-4"> 
+=======
+            <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
+            <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
+>>>>>>> bac936e27205be3f20837c261c303b9780a2b6c3
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                     <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
                     </div>
                     <div class="ml-3 flex-grow">
+<<<<<<< HEAD
                         <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
+=======
+                        <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }} (Téléchargé le {{ folder.upload_date }})</p>
+>>>>>>> bac936e27205be3f20837c261c303b9780a2b6c3
                         <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
                     </div>
                     <div class="relative">
@@ -268,6 +277,7 @@
                     </div>     
                 </div>    
             </div>
+<<<<<<< HEAD
             {% empty %}
             <div class="col-span-3 flex flex-col items-center justify-center ">
                 <img src="{% static 'images/NoFile.png' %}" alt="Logo" class="max-w-full  w-20 h-20">
@@ -275,6 +285,47 @@
                 <p class="text-sm">Drag your folders here or use the "Upload" button to upload</p>
             </div>
             {% endfor %}
+=======
+            </a>
+        {% empty %}
+        <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
+            <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                    <i class="bx bx-folder text-blue-500 text-2xl"></i>
+                </div>
+                <div class="ml-3 flex-grow">
+                    <p class="font-semibold text-[16px] text-gray-800 truncate w-40">Aucun</p>
+                    <p class="text-sm mt-[-3px] text-gray-500">12 fichiers</p>
+                </div>
+                <div class="relative">
+                    <div class="text-gray-500 text-2xl cursor-pointer ml-[40px] p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
+                        <i class='bx bx-dots-vertical-rounded'></i>
+                    </div>    
+                    <!-- Menu Deroulant 3 petits points -->   
+                    <div id="menu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg ">
+                        <ul>
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
+                                <i class="bx bx-download mr-2"></i> Download
+                            </li>
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                                <i class="bx bx-edit mr-2"></i> Rename
+                            </li>
+                            <hr class="my-1 border-gray-300">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                <i class="bx bx-star mr-2"></i> Add to favorites
+                            </li>
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
+                                <i class="bx bx-info-circle mr-2"></i> Folder information
+                            </li>
+                            <hr class="my-1 border-gray-300">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                <i class="bx bx-trash mr-2"></i> Move to trash
+                            </li>
+                        </ul>
+                    </div>
+                </div>     
+            </div>    
+>>>>>>> bac936e27205be3f20837c261c303b9780a2b6c3
         </div>
         
             <!-- Files -->  
