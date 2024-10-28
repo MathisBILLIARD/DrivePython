@@ -10,8 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}
-       
+        .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
     </style>
 </head>
 <body>
@@ -32,31 +31,31 @@
             <div class="menu">
                 <ul>
                     <li class="nav-link mt-5 flex items-center h-9">
-                        <a href="#" class="link flex items-center w-full h-full rounded-lg transition duration-200">
-                            <i class='bx bx-folder-minus icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
-                            <span class="text text-[var(--text-color)]">My Files</span>
+                        <a href="{% url 'accueil' %}" class="flex items-center bg-[var(--primary-color)] h-full rounded-lg transition duration-200 w-full">
+                            <i class='bx bx-folder-minus icon min-w-[60px] flex justify-center items-center text-[20px] text-white transition-all duration-300'></i>
+                            <span class="text text-white">My Files</span>
                         </a>
                     </li>
                     <li class="nav-link mt-5 flex items-center h-9">
-                        <a href="#" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                        <a href="{% url 'recents' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
                             <i class='bx bx-time-five icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
                             <span class="text nav-text text-[var(--text-color)]">Recents</span>
                         </a>
                     </li>
                     <li class="nav-link mt-5 flex items-center h-9">
-                        <a href="#" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                        <a href="{% url 'favorites' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
                             <i class='bx bx-star icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
                             <span class="text nav-text text-[var(--text-color)]">Favorites</span>
                         </a>
                     </li>
                     <li class="nav-link mt-5 flex items-center h-9">
-                        <a href="#" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                        <a href="{% url 'trash' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
                             <i class='bx bx-trash-alt icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
                             <span class="text nav-text text-[var(--text-color)]">Trash</span>
                         </a>
                     </li>
                     <li class="nav-link mt-5 flex items-center h-9">
-                        <a href="#" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                        <a href="{% url 'statistics' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
                             <i class='bx bx-trending-up icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
                             <span class="text nav-text text-[var(--text-color)]">Statistics</span>
                         </a>
@@ -80,7 +79,6 @@
             <i class="bx bx-search absolute left-2 top-1/2 transform -translate-y-1/2 text-2xl text-[var(--text-color)]"></i>
         </div>
         <div class="flex text-2xl text-[var(--text-color)] gap-4">
-            <i class="bx bx-cog icon cursor-pointer hover:text-[var(--primary-color)]"></i>
             <i id="profileIcon" class="bx bx-user icon cursor-pointer hover:text-[var(--primary-color)]"></i>
         </div>
     </div>
@@ -109,63 +107,15 @@
                                     <input type="file" name="file" id="fileInput" style="display: none;" onchange="validateFile()">
                                     <button type="button" onclick="document.getElementById('fileInput').click();">Upload File</button>
                                 </form>
-                                <script>
-                                    function validateFile() {
-                                        const fileInput = document.getElementById('fileInput');
-                                        const file = fileInput.files[0];
-                                        const maxSizeInMB = 40;
-                                
-                                        if (file && file.size > maxSizeInMB * 1024 * 1024) {
-                                            alert("Le fichier dépasse la taille limite de 40 Mo.");
-                                            fileInput.value = "";  // Réinitialise l'input file
-                                        } else {
-                                            document.getElementById('fileUploadForm').submit();  // Soumet le formulaire si le fichier est valide
-                                        }
-                                    }
-                                </script>
-                                
                             </li>
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
                                 <form method="post" action="{% url 'upload_folder' %}" enctype="multipart/form-data" id="folderUploadForm">
                                     {% csrf_token %}
                                     <input type="file" name="files" id="folderInput" style="display: none;" webkitdirectory multiple onchange="submitFolderForm()">
-                                    
-                                    <!-- Champ caché pour le nom du dossier -->
                                     <input type="hidden" name="folder_name" id="folderNameInput">
-                                
                                     <button type="button" onclick="document.getElementById('folderInput').click();">Upload Folder</button>
                                 </form>
-                                
-                                <script>
-                                    function submitFolderForm() {
-                                        const input = document.getElementById('folderInput');
-                                        const maxSizeInMB = 40;
-                                        let valid = true;
-                                
-                                        // Vérifier chaque fichier pour s'assurer qu'il ne dépasse pas 40 Mo
-                                        for (const file of input.files) {
-                                            if (file.size > maxSizeInMB * 1024 * 1024) {  // 40 Mo en octets
-                                                alert(`Le fichier ${file.name} dépasse la limite de 40 Mo.`);
-                                                valid = false;
-                                                break;
-                                            }
-                                        }
-                                
-                                        if (valid) {
-                                            // Récupérer le nom du dossier à partir du premier fichier
-                                            const firstFile = input.files[0];
-                                            if (firstFile) {
-                                                const folderName = firstFile.webkitRelativePath.split('/')[0]; // Récupère le nom du dossier
-                                                document.getElementById('folderNameInput').value = folderName; // Remplit le champ caché avec le nom du dossier
-                                            }
-                                
-                                            // Soumettre le formulaire si tous les fichiers respectent la taille limite
-                                            document.getElementById('folderUploadForm').submit();
-                                        }
-                                    }
-                                </script>
-                                
                             </li>
                         </ul>
                     </div>
@@ -203,7 +153,7 @@
                     <span>Type</span>
                     <i class='bx bx-chevron-down ml-2 text-[20px]' id="chevron-icon-type"></i>
                     </button>
-                    <ul id="dropdown-type" class="absolute hidden bg-white shadow-lg rounded-md mt-1 min-w-max"> <!-- Utilise min-w-max pour la largeur dynamique -->
+                    <ul id="dropdown-type" class="absolute hidden bg-white shadow-lg rounded-md mt-1 min-w-max"> 
                         <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Documents', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
                             <i class='bx bx-file mr-2'></i> Documents
                         </li>
@@ -271,30 +221,30 @@
         </div>
     </div>
 
-    <!-- My files -->  
-    <div class=" overflow-y-auto px-[30px] home  w-[calc(100%-250px)] h-[100%] relative pt-[190px] left-[250px] transition-all duration-500 justify-between items-center ">    
-        <div class="files ">
-            <span class="text-[16px] ">Folders</span>
-        </div>
- 
-    <!-- Grid -->         
-        <div id="grid-view" class=" mt-[10px] ">
+   <!-- My files -->  
+   <div class=" overflow-y-auto px-[30px] home  w-[calc(100%-250px)] h-[100%] relative pt-[190px] left-[250px] transition-all duration-500 justify-between items-center ">    
+    <div class="files" id="folder-title">
+        <span class="text-[16px]">Folders</span>
+    </div>   
+    <!-- Grid -->
+    <div id="grid-view">
+        <div class="grid grid-cols-3 gap-4 mt-3">
             {% for folder in folders %}
-            <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
+            <div class="flex flex-col space-y-4"> 
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                    <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
                     </div>
                     <div class="ml-3 flex-grow">
-                        <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }} (Téléchargé le {{ folder.upload_date }})</p>
-                        <p class="text-sm mt-[-3px] text-gray-500">12 fichiers</p>
+                        <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
+                        <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
                     </div>
                     <div class="relative">
-                        <div class="text-gray-500 text-2xl cursor-pointer ml-[40px] p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
+                        <div class="text-gray-500 text-2xl cursor-pointer p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
                             <i class='bx bx-dots-vertical-rounded'></i>
-                        </div>    
-                        <!-- Menu Deroulant 3 petits points -->   
-                        <div id="menu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg ">
+                        </div>
+                        <!-- Dropdown Menu -->
+                        <div class="hidden absolute left-0 mt-1 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
                             <ul>
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                     <i class="bx bx-download mr-2"></i> Download
@@ -318,228 +268,125 @@
                     </div>     
                 </div>    
             </div>
-        {% empty %}
-        <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
-            <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
-                <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-                    <i class="bx bx-folder text-blue-500 text-2xl"></i>
-                </div>
-                <div class="ml-3 flex-grow">
-                    <p class="font-semibold text-[16px] text-gray-800 truncate w-40">Aucun</p>
-                    <p class="text-sm mt-[-3px] text-gray-500">12 fichiers</p>
-                </div>
-                <div class="relative">
-                    <div class="text-gray-500 text-2xl cursor-pointer ml-[40px] p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
-                        <i class='bx bx-dots-vertical-rounded'></i>
-                    </div>    
-                    <!-- Menu Deroulant 3 petits points -->   
-                    <div id="menu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg ">
-                        <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
-                                <i class="bx bx-download mr-2"></i> Download
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
-                                <i class="bx bx-edit mr-2"></i> Rename
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
-                                <i class="bx bx-star mr-2"></i> Add to favorites
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i> Folder information
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
-                                <i class="bx bx-trash mr-2"></i> Move to trash
-                            </li>
-                        </ul>
-                    </div>
-                </div>     
-            </div>    
+            {% empty %}
+            <div class="col-span-3 flex flex-col items-center justify-center ">
+                <img src="{% static 'images/NoFile.png' %}" alt="Logo" class="max-w-full  w-20 h-20">
+                <p class="text-lg font-semibold">A place for all of your files</p>
+                <p class="text-sm">Drag your folders here or use the "Upload" button to upload</p>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         
-    <!-- Files -->  
-            <div class="files mt-[15px] ">
-                <span class="text-[16px] ">Files</span>
+            <!-- Files -->  
+            <div class="files mt-[15px]" id="file-title">
+                <span class="text-[16px]">Files</span>
             </div>
-            {% for file in files %}
-    <div class="mt-[10px] flex flex-col"> <!-- Utiliser flex-col ici pour la mise en page verticale -->
-        <div id="grid-view" class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center justify-center">
-                    <i class="bx bx-folder text-black text-2xl"></i>
-                </div>
-                <div class="ml-3 flex-grow">
-                    <p class="font-semibold text-[16px] text-gray-800 truncate w-44">{{ file.file_name }} (Téléchargé le {{ file.upload_date }})</p>
-                </div>
-                <div class="relative">
-                    <div class="text-gray-500 text-2xl cursor-pointer ml-[40px] p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
-                        <i class='bx bx-dots-vertical-rounded'></i>
+            <div class="grid grid-cols-3 gap-4 mt-3">
+                {% for file in files %}
+                <div class="flex flex-col space-y-4 mb-3"> 
+                    <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-center">
+                                <i class="bx bx-folder text-black text-2xl"></i>
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-44">{{ file.file_name }} (Téléchargé le {{ file.upload_date }})</p>
+                            </div>
+                            <div class="relative">
+                                <div class="text-black text-2xl cursor-pointer p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
+                                    <i class='bx bx-dots-vertical-rounded'></i>
+                                </div>
+                                <!-- Menu déroulant -->
+                                <div class="hidden absolute left-0 mt-1 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
+                                    <ul>
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
+                                            <i class="bx bx-download mr-2"></i> Download
+                                        </li>
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                                            <i class="bx bx-edit mr-2"></i> Rename
+                                        </li>
+                                        <hr class="my-1 border-gray-300">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                            <i class="bx bx-star mr-2"></i> Add to favorites
+                                        </li>
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
+                                            <i class="bx bx-info-circle mr-2"></i> Folder information
+                                        </li>
+                                        <hr class="my-1 border-gray-300">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                            <i class="bx bx-trash mr-2"></i> Move to trash
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>            
+                        </div>
+                        <div class="py-2">
+                            <img class="object-cover w-[100%] h-[82%] rounded-md" src="https://via.placeholder.com/300x200" alt="Image Placeholder">
+                        </div>
                     </div>
-                    <div id="menu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg">
-                        <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
-                                <i class="bx bx-download mr-2"></i> Download
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
-                                <i class="bx bx-edit mr-2"></i> Rename
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
-                                <i class="bx bx-star mr-2"></i> Add to favorites
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i> Folder information
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
-                                <i class="bx bx-trash mr-2"></i> Move to trash
-                            </li>
-                        </ul>
-                    </div>
                 </div>
-            </div>
-            <div class="py-2">
-                <img class="object-cover w-[100%] h-[82%] rounded-md" src="https://via.placeholder.com/300x200" alt="Image Placeholder">
+                {% empty %}
+                <div class="col-span-3 flex flex-col items-center justify-center ">
+                    <img src="{% static 'images/NoFile.png' %}" alt="Logo" class="max-w-full  w-20 h-20">
+                    <p class="text-lg font-semibold">A place for all of your files</p>
+                    <p class="text-sm">Drag your files here or use the "Upload" button to upload</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
-    {% empty %}
-    <div class="mt-[10px] flex flex-col"> <!-- Utiliser flex-col ici pour la mise en page verticale -->
-        <div id="grid-view" class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center justify-center">
-                    <i class="bx bx-folder text-black text-2xl"></i>
-                </div>
-                <div class="ml-3 flex-grow">
-                    <p class="font-semibold text-[16px] text-gray-800 truncate w-44">Aucun</p>
-                </div>
-                <div class="relative">
-                    <div class="text-gray-500 text-2xl cursor-pointer ml-[40px] p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
-                        <i class='bx bx-dots-vertical-rounded'></i>
-                    </div>
-                    <div id="menu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg">
-                        <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
-                                <i class="bx bx-download mr-2"></i> Download
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
-                                <i class="bx bx-edit mr-2"></i> Rename
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
-                                <i class="bx bx-star mr-2"></i> Add to favorites
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i> Folder information
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
-                                <i class="bx bx-trash mr-2"></i> Move to trash
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="py-2">
-                <img class="object-cover w-[100%] h-[82%] rounded-md" src="https://via.placeholder.com/300x200" alt="Image Placeholder">
-            </div>
-        </div>
-    </div>
-{% endfor %}
 
-        </div>   
-
-    <!-- List -->
-    {% load custom_filter %}
-        <div id="list-view" class="hidden flex flex-col mt-[10px]" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
+        <!-- List -->
+        {% load custom_filter %}
+        <div id="list-view" class="hidden flex flex-col" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
             {% for file in files %}
             <div class="flex items-center border-t p-2 border-b border-gray-300">
                 <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg mr-4">
                     <i class="bx bx-folder text-black text-2xl"></i>
                 </div>
-                <p class="text-black font-[300] text-base mr-4 flex-grow">{{ file.file_name }}</p>
-                <p class="text-gray-500 text-sm mr-10">{{ file.file_path|foldername_display }}</p>
-                <p class="text-gray-500 text-sm mr-10">
+                <p class="text-black font-[300] text-base mr-4 flex-grow" style="min-width: 200px;">
+                    {{ file.file_name|truncatechars:20 }}
+                </p>
+                <p class="text-gray-500 text-sm mr-10" style="min-width: 150px;">{{ file.file_path|foldername_display }}</p>
+                <p class="text-gray-500 text-sm mr-10" style="min-width: 100px;">
                     {{ file.file_size|filesize_display }}
                 </p>
-                <p class="text-gray-500 text-sm mr-10">{{ file.upload_date }}</p>
+                <p class="text-gray-500 text-sm mr-10" style="min-width: 120px;">{{ file.upload_date }}</p>
                 <div class="relative">
-                    <div class="text-black text-2xl cursor-pointer  p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenuss(event)">
+                    <div class="text-black text-2xl cursor-pointer p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
                         <i class='bx bx-dots-vertical-rounded'></i>
                     </div>
-                    <div id="menus" class="hidden absolute right-0 mt-2 z-40 w-48 bg-white border border-gray-200 rounded-lg shadow-lg ">
+                    <div class="hidden absolute z-10 left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
                         <ul>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
-                                <i class="bx bx-download mr-2"></i>
-                                Download
+                                <i class="bx bx-download mr-2"></i> Download
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
-                                <i class="bx bx-edit mr-2"></i>
-                                Rename
+                                <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
-                                <i class="bx bx-star mr-2"></i>
-                                Add to favorites
+                                <i class="bx bx-star mr-2"></i> Add to favorites
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i>
-                                Folder information
+                                <i class="bx bx-info-circle mr-2"></i> Folder information
                             </li>
                             <hr class="my-1 border-gray-300">
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
-                                <i class="bx bx-trash mr-2"></i>
-                                Move to trash
+                                <i class="bx bx-trash mr-2"></i> Move to trash
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="flex items-center border-t p-2 border-b border-gray-300">
-                <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg mr-4">
-                    <i class="bx bx-folder text-black text-2xl"></i>
+            {% empty %} 
+                <li onclick="selectOption('Renommer')" class="list-none">
+                </li>
+                <div class="col-span-3 flex flex-col items-center justify-center ">
+                    <img src="{% static 'images/NoFile.png' %}" alt="Logo" class="max-w-full  w-20 h-20">
+                    <p class="text-lg font-semibold">A place for all of your files</p>
+                    <p class="text-sm">Drag your files here or use the "Upload" button to upload</p>
                 </div>
-                <p class="text-black font-[300] text-base mr-4 flex-grow">Aucun</p>
-                <p class="text-gray-500 text-sm mr-10">Folder</p>
-                <p class="text-gray-500 text-sm mr-10">
-                </p>
-                <p class="text-gray-500 text-sm mr-10"></p>
-                <div class="relative">
-                    <div class="text-black text-2xl cursor-pointer  p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenuss(event)">
-                        <i class='bx bx-dots-vertical-rounded'></i>
-                    </div>
-                    <div id="menus" class="hidden absolute right-0 mt-2 z-40 w-48 bg-white border border-gray-200 rounded-lg shadow-lg ">
-                        <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
-                                <i class="bx bx-download mr-2"></i>
-                                Download
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
-                                <i class="bx bx-edit mr-2"></i>
-                                Rename
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
-                                <i class="bx bx-star mr-2"></i>
-                                Add to favorites
-                            </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i>
-                                Folder information
-                            </li>
-                            <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
-                                <i class="bx bx-trash mr-2"></i>
-                                Move to trash
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
         </div>
     </div>
     
@@ -585,10 +432,40 @@
         <div id="modal-overlay" class="modal-overlay fixed inset-0 bg-black opacity-50"></div>
     </div>
 
-
-
-
 <script>
+ function submitFolderForm() {
+    const input = document.getElementById('folderInput');
+    const maxSizeInMB = 40;
+    let valid = true;
+    for (const file of input.files) {
+        if (file.size > maxSizeInMB * 1024 * 1024) {  
+            alert(`Le fichier ${file.name} dépasse la limite de 40 Mo.`);
+            valid = false;
+            break;
+        }
+    }
+                                    
+    if (valid) {
+        const firstFile = input.files[0];
+        if (firstFile) {
+            const folderName = firstFile.webkitRelativePath.split('/')[0]; 
+            document.getElementById('folderNameInput').value = folderName; 
+        }
+        document.getElementById('folderUploadForm').submit();
+    }
+}
+
+function validateFile() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    const maxSizeInMB = 40;
+    if (file && file.size > maxSizeInMB * 1024 * 1024) {
+        alert("Le fichier dépasse la taille limite de 40 Mo.");
+        fileInput.value = "";  
+    } else {
+        document.getElementById('fileUploadForm').submit(); 
+    }
+}
 
 // Popup Profil
 const profileIcon = document.getElementById('profileIcon');
@@ -623,7 +500,6 @@ logoutBtn.onclick = function() {
                 'You have been successfully logged out.',
                 'success'
             ).then(() => {
-                // Redirige vers l'URL de déconnexion
                 window.location.href = "{% url 'deconnexion' %}";
             });
         }
@@ -687,20 +563,40 @@ renameModalOverlay.onclick = function() {
     renameModal.classList.add('hidden');
 }
 function selectOption(option) {
-    closeMenu(); 
     if (option === 'Renommer') {
         renameModal.classList.remove('hidden'); 
     }
+    closeMenu(); 
 }
 document.getElementById('rename-btn').onclick = function() {
     const newName = document.getElementById('renameFolderName').value;
     renameModal.classList.add('hidden'); 
 };
+
+let openDropdown = null;
+
 function toggleMenus(event) {
-    const menu = document.getElementById('menu');
     event.stopPropagation(); 
-    menu.classList.toggle('hidden'); 
+    const dropdown = event.currentTarget.nextElementSibling;
+    if (openDropdown && openDropdown !== dropdown) {
+        openDropdown.classList.add('hidden');
+    }
+    dropdown.classList.toggle('hidden');
+    openDropdown = dropdown.classList.contains('hidden') ? null : dropdown;
 }
+document.addEventListener('click', () => {
+    if (openDropdown) {
+        openDropdown.classList.add('hidden');
+        openDropdown = null; 
+    }
+});
+document.addEventListener('click', () => {
+    const allDropdowns = document.querySelectorAll('.hidden');
+    allDropdowns.forEach((menu) => {
+        menu.classList.add('hidden');
+    });
+});
+
 function toggleMenuss(event) {
     const menuss = document.getElementById('menus');
     event.stopPropagation(); 
@@ -709,13 +605,13 @@ function toggleMenuss(event) {
 
 // Option Télécharger
 function downloadFile() {
-    closeMenu(); 
     Swal.fire({
         title: 'Confirmation',
         text: 'The file has been successfully downloaded.',
         icon: 'success',
         confirmButtonText: 'OK'
     });
+    closeMenu(); 
 }
 //Option Favorie
 function addToFavorites() {
@@ -773,9 +669,11 @@ function toggleView(view) {
     const listView = document.getElementById('list-view');
     const btnList = document.getElementById('btn-list');
     const btnGrid = document.getElementById('btn-grid');
+    const folderTitle = document.getElementById('folder-title');
     if (view === 'list') {
         gridView.classList.add('hidden');
         listView.classList.remove('hidden');
+        folderTitle.classList.add('hidden'); // Masque la div "Folders"
         btnList.classList.add('bg-[var(--primary-color)]', 'text-white');
         btnList.classList.remove('bg-[#f6f6f9]', 'text-black');
         btnGrid.classList.add('bg-[#f6f6f9]', 'text-black');
@@ -783,6 +681,7 @@ function toggleView(view) {
     } else if (view === 'grid') {
         listView.classList.add('hidden');
         gridView.classList.remove('hidden');
+        folderTitle.classList.remove('hidden'); // Affiche la div "Folders"
         btnGrid.classList.add('bg-[var(--primary-color)]', 'text-white');
         btnGrid.classList.remove('bg-[#f6f6f9]', 'text-black');
         btnList.classList.add('bg-[#f6f6f9]', 'text-black');
@@ -901,24 +800,6 @@ window.addEventListener('click', function(event) {
         document.getElementById('create-chevron').classList.add('bx-chevron-down');
     }
 });
-
-// Gérer l'upload de fichiers ou dossiers
-/*document.querySelector("#upload-menu").addEventListener("click", function(event) {
-    const target = event.target.closest("li");
-    if (target && target.textContent.includes("File")) {
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.click();
-    } else if (target && target.textContent.includes("Folder")) {
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.webkitdirectory = true;
-        input.click();
-    }
-});*/
-
-
 
 //Sidebar Ouverture/fermeture
 const body = document.body,

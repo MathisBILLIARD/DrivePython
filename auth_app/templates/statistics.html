@@ -1,0 +1,223 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudDrive - Statistics</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../static/images/cloudsmall.png" type="image/x-icon">
+    <link rel="stylesheet" href="{% url 'style' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
+    </style>
+</head>
+<body>
+    {% load custom_filter %}
+    <!-- Sidebar Gauche -->
+    <nav class="sidebar fixed top-0 left-0 z-[10] h-full p-[2px] px-5 w-[250px] bg-[var(--sidebar-color)] transition-all duration-500">
+        <header class="relative z-50">
+            <div class="image-text">
+                <span class="image min-w-[60px] cursor-pointer">
+                    {% load static %}
+                    <img src="{% static 'images/cloud.png' %}" alt="Logo" class="open w-[150px] rounded-lg my-5">
+                    <img src="{% static 'images/cloudsmall.png' %}" alt="Logo Small" class="close w-[150px] rounded-lg my-5" style="display:none;">
+                </span>
+            </div>
+            <i class="bx bx-chevron-right toggle absolute top-1/2 right-[-0px] cursor-pointer transform -translate-y-1/2 rotate-180 h-[25px] w-[25px] bg-[var(--primary-color)] flex items-center justify-center rounded-full text-white text-[22px] hidden md:flex"></i>
+        </header>
+        <div class="mt-5 flex flex-col justify-between h-[calc(100%-50px)]">
+            <div class="menu">
+                <ul>
+                    <li class="nav-link mt-5 flex items-center h-9">
+                        <a href="{% url 'accueil' %}" class="link flex items-center  h-full rounded-lg transition duration-200 w-full">
+                            <i class='bx bx-folder-minus icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
+                            <span class="text text-[var(--text-color)]">My Files</span>
+                        </a>
+                    </li>
+                    <li class="nav-link mt-5 flex items-center h-9">
+                        <a href="{% url 'recents' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200 ">
+                            <i class='bx bx-time-five icon min-w-[60px] flex justify-center items-center text-[20px]  text-[var(--text-color)]  transition-all duration-300'></i>
+                            <span class="text nav-text  text-[var(--text-color)] ">Recents</span>
+                        </a>
+                    </li>
+                    <li class="nav-link mt-5 flex items-center h-9">
+                        <a href="{% url 'favorites' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                            <i class='bx bx-star icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
+                            <span class="text nav-text text-[var(--text-color)]">Favorites</span>
+                        </a>
+                    </li>
+                    <li class="nav-link mt-5 flex items-center h-9">
+                        <a href="{% url 'trash' %}" class="link flex items-center w-full h-full rounded-lg transition duration-200">
+                            <i class='bx bx-trash-alt icon min-w-[60px] flex justify-center items-center text-[20px] text-[var(--text-color)] transition-all duration-300'></i>
+                            <span class="text nav-text text-[var(--text-color)]">Trash</span>
+                        </a>
+                    </li>
+                    <li class="nav-link mt-5 flex items-center h-9">
+                        <a href="{% url 'statistics' %}" class=" bg-[var(--primary-color)] flex items-center w-full h-full rounded-lg transition duration-200">
+                            <i class='bx bx-trending-up icon min-w-[60px] flex justify-center items-center text-[20px] text-white transition-all duration-300'></i>
+                            <span class="text nav-text text-white">Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="storage p-5 bg-[#2e3136] rounded-lg transform -translate-y-12">
+                <span class="text-white text-base">Storage</span>
+                <div class="bg-white rounded-full h-1.5 overflow-hidden my-3 border border-gray-800">
+                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ files|sum_files_size|usage_percentage }}%;"></div>
+                </div>
+                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ files|sum_files_size|filesize_display }} of 100 Mo used</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Barre de Recherche + Profil -->
+    <div class="home w-[calc(100%-250px)] bg-white fixed z-10 left-[250px] transition-all  duration-500 flex justify-between items-center py-[17px] px-[30px] z-30">
+        <div class="relative">
+            <input type="text" placeholder="Search your file" class="py-3 px-11 bg-[#f6f6f9] text-black border-none w-4/5 rounded-lg text-sm placeholder:text-[var(--text-color)] focus:outline-none">
+            <i class="bx bx-search absolute left-2 top-1/2 transform -translate-y-1/2 text-2xl text-[var(--text-color)]"></i>
+        </div>
+        <div class="flex text-2xl text-[var(--text-color)] gap-4">
+            <i id="profileIcon" class="bx bx-user icon cursor-pointer hover:text-[var(--primary-color)]"></i>
+        </div>
+    </div>
+    
+    <!-- Upload + Create -->
+    <div class="home bg-white w-[calc(100%-250px)] fixed left-[250px] transition-all duration-500 justify-between items-center py-[17px] z-20">
+        <hr class="h-[1.5px] mt-[60px] bg-gray-200 w-[100%] mb-4"></hr> 
+        <div class="files flex flex-col md:flex-row justify-between  px-[30px]">
+            <p class="font-bold text-2xl text-black bold">Statistics</p>      
+        </div>
+        
+    </div>
+    
+<!-- Popup Profil -->
+    <div id="profilePopup" class="hidden fixed top-0 right-0 w-full max-w-xs z-50" style="margin: 30px;">
+        <div class="bg-gray-100 rounded-lg shadow-lg p-6 relative w-full max-w-sm">
+            <button id="closePopup" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <i class="bx bx-x text-2xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold mb-4">Hello {{ request.user.username }} !</h2>
+            <button id="logoutBtn" class="bg-[var(--primary-color)] text-white px-4 py-2 rounded w-full mb-3   transition-all duration-200 hover:scale-95">
+                    Deconnexion
+            </button>
+            <button id="deleteAccountBtn" class="bg-red-500 text-white px-4 py-2 rounded w-full hover:bg-red-600 transition-all duration-200 hover:scale-95">
+                    Delete account
+            </button>
+        </div>
+    </div>
+<script>
+// Popup Profil
+const profileIcon = document.getElementById('profileIcon');
+const profilePopup = document.getElementById('profilePopup');
+const closePopup = document.getElementById('closePopup');
+const logoutBtn = document.getElementById('logoutBtn');
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+profileIcon.onclick = function() {
+    profilePopup.classList.remove('hidden');
+}
+closePopup.onclick = function() {
+    profilePopup.classList.add('hidden');
+}
+window.onclick = function(event) {
+    if (!profilePopup.contains(event.target) && event.target !== profileIcon) {
+        profilePopup.classList.add('hidden');
+    }
+}
+logoutBtn.onclick = function() {
+    Swal.fire({
+        title: 'Are you sure you want to log out?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, log me out',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            profilePopup.classList.add('hidden');
+            Swal.fire(
+                'Logged out!',
+                'You have been successfully logged out.',
+                'success'
+            ).then(() => {
+                window.location.href = "{% url 'deconnexion' %}";
+            });
+        }
+    });
+}
+deleteAccountBtn.onclick = function() {
+    Swal.fire({
+        title: 'Are you sure you want to delete your account?',
+        text: "This action is irreversible!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            profilePopup.classList.add('hidden');
+            Swal.fire(
+                'Deleted!',
+                'Your account has been deleted.',
+                'success'
+            );
+        }
+    })
+}
+
+//Sidebar Ouverture/fermeture
+const body = document.body,
+toggle = body.querySelector(".toggle"),
+sidebar = body.querySelector(".sidebar"),
+[openImage, closeImage] = sidebar.querySelectorAll(".image .open, .image .close"),
+links = document.querySelectorAll('.link');
+const handleSidebarForMobile = () => {
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add("close");  
+        openImage.style.display = "none"; 
+        closeImage.style.display = "block"; 
+    } else {
+        sidebar.classList.remove("close"); 
+        openImage.style.display = "block"; 
+        closeImage.style.display = "none"; 
+    }
+};
+handleSidebarForMobile();
+window.addEventListener("resize", handleSidebarForMobile);
+
+// Gestion du clic sur le toggle
+toggle.addEventListener("click", () => {
+    sidebar.classList.toggle("close");
+    toggle.classList.toggle("bx-chevron-right");
+    toggle.classList.toggle("bx-chevron-left");
+    openImage.style.display = sidebar.classList.contains("close") ? "none" : "block";
+    closeImage.style.display = sidebar.classList.contains("close") ? "block" : "none";
+});
+const defaultColor = 'var(--text-color)', 
+hoverColor = 'white', 
+backgroundColor = 'var(--primary-color)';
+const updateStyles = (element, hover) => {
+    const icon = element.querySelector('i'), 
+    text = element.querySelector('span');
+    icon.style.color = hover ? hoverColor : defaultColor;
+    text.style.color = hover ? hoverColor : defaultColor;
+    element.style.backgroundColor = hover ? backgroundColor : '';
+};  
+links.forEach(link => {
+    link.addEventListener('mouseover', e => updateStyles(e.currentTarget, true));
+    link.addEventListener('mouseout', e => {
+        if (!e.currentTarget.classList.contains('active')) updateStyles(e.currentTarget, false);
+    });
+    link.addEventListener('click', e => {
+        links.forEach(l => {
+            l.classList.remove('active');
+            updateStyles(l, false);
+        });
+        e.currentTarget.classList.add('active');
+        updateStyles(e.currentTarget, true);
+    });
+});
+</script>    
+</body>
+</html>

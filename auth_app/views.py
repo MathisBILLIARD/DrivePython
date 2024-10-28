@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import os
 from django.conf import settings
-import requests
 from django.core.files.storage import default_storage
 from .models import UploadedFile, Folder
 
@@ -31,7 +30,7 @@ def connexion(request):
             login(request, user)
             return redirect('accueil')
         else:
-            messages.error(request, 'Nom d\'utilisateur ou mot de passe incorrect.')
+            messages.error(request, 'Incorrect username or password.')
     return render(request, 'connexion.html')
 
 @login_required
@@ -40,6 +39,17 @@ def acceuil(request):
     user_files = UploadedFile.objects.filter(user=request.user)
     user_folders = Folder.objects.filter(user=request.user)
     return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+
+def display_folder(request, folder_name):
+    # Récupérer les fichiers de l'utilisateur dans le dossier spécifié
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder_name
+    ]
+
+    # Passer `folder_name` directement si vous n'avez pas d'objet `Folder`
+    return render(request, 'folder_files.html', {'files': folder_files, 'folder_name': folder_name})
 
 def deconnexion(request):
     logout(request)
@@ -136,9 +146,20 @@ def upload_folder(request):
 
     return render(request, 'accueil.html')
 
-
 def style(request):
     return render(request, 'style.css', content_type='text/css')
+
+def trash(request):
+    return render(request, 'trash.html')
+
+def recents(request):
+    return render(request, 'recents.html')
+
+def statistics(request):
+    return render(request, 'statistics.html')
+
+def favorites(request):
+    return render(request, 'favorites.html')
 
 def user_files(request):
     # Récupère tous les fichiers uploadés par l'utilisateur connecté

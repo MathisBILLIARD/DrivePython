@@ -1,120 +1,30 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription</title>
+    <title>CloudDrive - Register</title>
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../static/images/cloudsmall.png" type="image/x-icon">
+    <link rel="stylesheet" href="{% url 'style' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
+    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="container">
+<body class="min-h-screen bg-[var(--primary-color)] flex justify-center items-center">
+    <div class="w-96 bg-white rounded-lg shadow-lg p-8">
             <div class="form">
                 <form method="post" action="{% url 'inscription' %}">
                     {% csrf_token %}
-                    <h1>Inscription</h1>
+                    <h1 class="text-2xl font-semibold mb-6">Register</h1>
                     {{ form.as_p }}    
-                    <button type="submit">S'inscrire</button>
+                    <button type="submit" class=" w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:opacity-75 transition-all duration-200 active:scale-95 ">Register</button>
                 </form>
-                <p class="link">Déjà inscrit ? <a href="{% url 'connexion' %}">Se connecter</a></p>
+                <p class="link text-center mt-[10px]">Already registered ? <a href="{% url 'connexion' %}" class="text-[var(--primary-color)] hover:underline">Login</a></p>
             </div>
-        </div>      
     </div>
-    <style>
-        /* CSS */
-        /* Import Google font - Poppins */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        h1 {
-            margin: 20px 0;
-        }
-
-        body {
-            min-height: 100vh;
-            width: 100%;
-            background: #009579;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 400px;
-            background: #fff;
-            border-radius: 7px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .container .form {
-            padding: 30px;
-        }
-
-        label {
-            padding: 10px 0;
-            color: #009579;
-            cursor: pointer;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            font-size: 17px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            outline: none;
-            margin-bottom: 15px;
-            margin-top: 10px;
-        }
-
-        a {
-            font-size: 16px;
-            color: #009579;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        button {
-            color: #fff;
-            background: #009579;
-            width: 100%;
-            padding: 10px;
-            font-size: 17px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        button:hover {
-            background: #006653;
-        }
-
-        .link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .error {
-            background-color: red;
-            color: #fff;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 14px;      
-            text-align: center; 
-        }
-        ul {
-            list-style: none;
-            color: red;
-        }
-    </style>
+    <style>label {display: block;margin-bottom: 0.5rem;color: var(--primary-color);}input {width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 0.5rem; margin-bottom: 1rem; }ul {list-style: none;color: red;}</style>
 </body>
 </html>

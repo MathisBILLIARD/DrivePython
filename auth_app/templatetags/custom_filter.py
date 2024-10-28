@@ -1,4 +1,5 @@
 # Dans le fichier yourapp/templatetags/custom_filters.py
+import os
 from django import template
 
 register = template.Library()
@@ -20,8 +21,7 @@ def foldername_display(folder_path):
     """
     Extrait le nom du dossier à partir du chemin complet.
     """
-    return folder_path.split('/')[-2]
-
+    return os.path.basename(os.path.dirname(folder_path))
 @register.filter
 def sum_files_size(files):
     """
@@ -36,3 +36,12 @@ def usage_percentage(file_size, max_size=100 * 1024 * 1024):  # Par défaut, 100
     """
     percentage = (file_size / max_size) * 100
     return round(min(percentage, 100), 2)  # Limite à 100 % max et arrondi à 2 décimales
+
+@register.filter
+def number_file_in_folder(files, folder):
+    """
+    Compte le nombre de fichiers dans un dossier.
+    """
+    number = len([file for file in files if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name])
+    # fichier ou fichiers
+    return f"{number} fichier{'s' if number > 1 else ''}"
