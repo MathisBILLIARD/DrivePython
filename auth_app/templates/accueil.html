@@ -231,15 +231,14 @@
         <div class="grid grid-cols-3 gap-4 mt-3">
             {% for folder in folders %}
             <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
+                <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onclick="event.stopPropagation()">
                     <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
                     </div>
                     <div class="ml-3 flex-grow">
-                        <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
                             <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
                             <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
-                        </a>
                     </div>
                     <div class="relative" onclick="event.stopPropagation()">
                         <div class="text-gray-500 text-2xl cursor-pointer p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event); event.stopPropagation();">
@@ -269,7 +268,8 @@
                             </ul>
                         </div>
                     </div>     
-                </div>  
+                </div> 
+            </a> 
             </div>
             {% empty %}
             <div class="col-span-3 flex flex-col items-center justify-center ">
@@ -579,7 +579,8 @@ document.getElementById('rename-btn').onclick = function() {
 let openDropdown = null;
 
 function toggleMenus(event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
+    event.preventDefault(); 
     const dropdown = event.currentTarget.nextElementSibling;
     if (openDropdown && openDropdown !== dropdown) {
         openDropdown.classList.add('hidden');
