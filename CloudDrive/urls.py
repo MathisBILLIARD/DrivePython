@@ -13,6 +13,7 @@ urlpatterns = [
     path('recents/', views.recents, name='recents'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
     path('upload_file/', views.upload_file, name='upload_file'),
+    path('upload_file_in_folder/<str:folder_name>/', views.upload_file_in_folder, name='upload_file_in_folder'),
     path('user_files/', views.user_files, name='user_files'),
     path('upload_folder/', views.upload_folder, name='upload_folder'),
     path('create_folder/<str:folder_name>/', views.create_folder, name='create_folder'),

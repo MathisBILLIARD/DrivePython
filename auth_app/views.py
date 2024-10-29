@@ -163,6 +163,56 @@ def upload_folder(request):
 
     return redirect('accueil')
 
+def upload_file_in_folder(request, folder_name):
+    if request.method == 'POST' and request.FILES['file']:
+        uploaded_file = request.FILES['file']  # Récupère le fichier uploadé
+        # Vérifier si la somme des tailles des fichiers de l'utilisateur plus le fichier uploader dépasse la limite de 100 Mo
+        user_files = UploadedFile.objects.filter(user=request.user)
+        total_size = sum([file.file_size for file in user_files]) + uploaded_file.size
+        if total_size > 100 * 1000 * 1000:  # 100 Mo en octets
+            messages.error(request, 'La taille totale de vos fichiers dépasse la limite autorisée.')
+            return redirect('accueil')
+
+        # Définir le chemin du dossier de destination (par exemple : media/uploads/user_<id>/)
+        user_folder = f'user_{request.user.id}'
+        destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
+        if not os.path.exists(destination_folder):
+            os.makedirs(destination_folder)
+
+        # Vérifier si le fichier existe déjà
+        if UploadedFile.objects.filter(user=request.user, file_name=uploaded_file.name).exists():
+            # on ajouter un numéro à la fin du nom du fichier
+            file_name, file_extension = os.path.splitext(uploaded_file.name)
+            i = 1
+            while UploadedFile.objects.filter(user=request.user, file_name=uploaded_file.name).exists():
+                uploaded_file.name = f'{file_name}_{i}{file_extension}'
+                i += 1
+
+        # Chemin de sauvegarde complet pour le fichier
+        file_path = os.path.join(destination_folder, uploaded_file.name)
+
+        # Enregistre le fichier sur le serveur
+        with default_storage.open(file_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        # Sauvegarde du fichier dans la base de données avec l'utilisateur
+        uploaded_file_instance = UploadedFile(
+            user=request.user, 
+            file_name=uploaded_file.name, 
+            file_path=file_path,
+            file_size=uploaded_file.size
+        )
+        uploaded_file_instance.save()
+        user_files = UploadedFile.objects.filter(user=request.user)
+
+        # lien vers la fonction accueil
+        # Redirection ou message de succès
+        return redirect('display_folder', folder_name)     
+
+    
+    return redirect('display_folder', folder_name)
+
 def rename_file(request, file_id, new_name):
     # Récupère le fichier à renommer
     file = UploadedFile.objects.get(id=file_id)

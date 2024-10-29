@@ -106,7 +106,7 @@
                         <ul class="py-2">
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-file text-[16px] mr-2'></i>
-                                <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data" id="fileUploadForm">
+                                <form method="post" action="{% url 'upload_file_in_folder' folder_name %}" enctype="multipart/form-data" id="fileUploadForm">
                                     {% csrf_token %}
                                     <input type="file" name="file" id="fileInput" style="display: none;" onchange="validateFile()">
                                     <button type="button" onclick="document.getElementById('fileInput').click();">Upload File</button>
