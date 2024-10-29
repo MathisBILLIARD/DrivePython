@@ -231,14 +231,15 @@
         <div class="grid grid-cols-3 gap-4 mt-3">
             {% for folder in folders %}
             <div id="grid-view" class="flex flex-col mt-3 space-y-4"> <!-- flex-col pour l'affichage vertical + espacement -->
-                <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onclick="event.stopPropagation()">
                     <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
                     </div>
                     <div class="ml-3 flex-grow">
+                        <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
                             <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
                             <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
+                        </a>
                     </div>
                     <div class="relative" onclick="event.stopPropagation()">
                         <div class="text-gray-500 text-2xl cursor-pointer p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event); event.stopPropagation();">
@@ -251,25 +252,24 @@
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                     <i class="bx bx-download mr-2"></i> Download
                                 </li>
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'trash_folder' 0 %}" data-opt="Renommer" onclick="selectOption('Renommer')">
                                     <i class="bx bx-edit mr-2"></i> Rename
                                 </li>
                                 <hr class="my-1 border-gray-300">
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'add_favorite_folder' 0 %}" onclick="addToFavorites(this)">
                                     <i class="bx bx-star mr-2"></i> Add to favorites
                                 </li>
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                     <i class="bx bx-info-circle mr-2"></i> Folder information
                                 </li>
                                 <hr class="my-1 border-gray-300">
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ folder.id }}" data-url-base="{% url 'trash_folder' 0 %}" onclick="moveToTrash(this)">
                                     <i class="bx bx-trash mr-2"></i> Move to trash
                                 </li>
                             </ul>
                         </div>
                     </div>     
                 </div> 
-            </a> 
             </div>
             {% empty %}
             <div class="col-span-3 flex flex-col items-center justify-center ">
@@ -285,7 +285,7 @@
                 <span class="text-[16px]">Files</span>
             </div>
             <div class="grid grid-cols-3 gap-4 mt-3">
-                {% for file in files %}
+                {% for file in files_not_folder %}
                 <div class="flex flex-col space-y-4 mb-3"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                         <div class="flex items-center justify-between">
@@ -309,14 +309,14 @@
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'add_favorite' 0 %}" onclick="addToFavorites(this)">
                                             <i class="bx bx-star mr-2"></i> Add to favorites
                                         </li>
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                             <i class="bx bx-info-circle mr-2"></i> Folder information
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                             <i class="bx bx-trash mr-2"></i> Move to trash
                                         </li>
                                     </ul>
@@ -363,18 +363,18 @@
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 %}" onclick="selectOption('Renommer', this)">
                                 <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'add_favorite' 0 %}" onclick="addToFavorites(this)">
                                 <i class="bx bx-star mr-2"></i> Add to favorites
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                 <i class="bx bx-info-circle mr-2"></i> Folder information
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                 <i class="bx bx-trash mr-2"></i> Move to trash
                             </li>
                         </ul>
@@ -566,15 +566,32 @@ renameModalOverlay.onclick = function() {
     renameModal.classList.add('hidden');
 }
 function selectOption(option) {
+    //const fileId = element.getAttribute('data-file-id');
+    //const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
+    //const option = element.getAttribute('data-opt');
+    const renameBtn = document.getElementById('rename-btn');
+    const renameInput = document.getElementById('renameFolderName');
+
     if (option === 'Renommer') {
-        renameModal.classList.remove('hidden'); 
+        // Affiche le modal de renommage
+        renameModal.classList.remove('hidden');
+
+        // Ajoute un écouteur pour gérer le clic du bouton de renommage
+        renameBtn.onclick = function() {
+            const newName = renameInput.value.trim();
+
+            if (newName === "") {
+                alert("Le nom du dossier ne peut pas être vide.");  // Vérifie que le nom n'est pas vide
+            } else {
+                console.log("Nouveau nom du dossier :", newName);
+                // Ajoutez ici le code pour envoyer `newName` au serveur ou mettre à jour l'interface
+                renameModal.classList.add('hidden');  // Ferme le modal après l'action
+            }
+        };
     }
-    closeMenu(); 
+    closeMenu();  // Ferme le menu après avoir sélectionné une option
+    
 }
-document.getElementById('rename-btn').onclick = function() {
-    const newName = document.getElementById('renameFolderName').value;
-    renameModal.classList.add('hidden'); 
-};
 
 let openDropdown = null;
 
@@ -609,6 +626,7 @@ function toggleMenuss(event) {
 
 // Option Télécharger
 function downloadFile() {
+    event.preventDefault();
     Swal.fire({
         title: 'Confirmation',
         text: 'The file has been successfully downloaded.',
@@ -618,28 +636,39 @@ function downloadFile() {
     closeMenu(); 
 }
 //Option Favorie
-function addToFavorites() {
+function addToFavorites(element) {
+    event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Add to Favorites',
         text: 'This folder has been added to favorites.',
         icon: 'success',
         confirmButtonText: 'OK'
+    }).then(() => {
+        // Ajouter le fichier aux favoris
+        window.location.href = urlBase;
     });
     closeMenu(); 
 }
 
 //Option Delete
-function moveToTrash() {
+function moveToTrash(element) {
+    event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Confirmation',
-        text: 'Are you sure you want to move this folder to the trash?',
+        text: 'Are you sure you want to move this file/folder to the trash?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, move it',
         cancelButtonText: 'Cancel'
     }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire('Moved!', 'The folder has been moved to the trash.', 'success');
+                Swal.fire('Moved!', 'The file has been moved to the trash.', 'success');
+                // Mettre le fichier à la corbeille
+                window.location.href = urlBase;
             }
     });
     closeMenu(); 
@@ -647,9 +676,11 @@ function moveToTrash() {
 
 //Option Rename Info
 function renameFile() {
+    event.preventDefault();
     closeMenu(); 
 }
 function folderInfo() {
+    event.preventDefault();
     closeMenu(); 
 }
 //Menu deroulant close

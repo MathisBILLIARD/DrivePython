@@ -198,14 +198,14 @@
                                     <i class="bx bx-edit mr-2"></i> Rename
                                 </li>
                                 <hr class="my-1 border-gray-300">
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="addToFavorites()">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ folder.id }}" data-url-base="{% url 'remove_favorite_folder' 0 %}" onclick="addToFavorites(this)">
                                     <i class="bx bx-star mr-2"></i> Delete to favorites
                                 </li>
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                     <i class="bx bx-info-circle mr-2"></i> Folder information
                                 </li>
                                 <hr class="my-1 border-gray-300">
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ folder.id }}" data-url-base="{% url 'trash_folder' 0 %}" onclick="moveToTrash(this)">
                                     <i class="bx bx-trash mr-2"></i> Move to trash
                                 </li>
                             </ul>
@@ -219,7 +219,7 @@
         
             <!-- Files -->  
             <div class="grid grid-cols-3 gap-4 mt-3">
-                {% for file in files %}
+                {% for file in files_not_folder %}
                 <div class="flex flex-col space-y-4 mb-3"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                         <div class="flex items-center justify-between">
@@ -243,14 +243,14 @@
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="addToFavorites()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'remove_favorite' 0 %}" onclick="addToFavorites(this)">
                                             <i class="bx bx-star mr-2"></i> Delete to favorites
                                         </li>
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                             <i class="bx bx-info-circle mr-2"></i> Folder information
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                             <i class="bx bx-trash mr-2"></i> Move to trash
                                         </li>
                                     </ul>
@@ -301,14 +301,14 @@
                                 <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="addToFavorites()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'remove_favorite' 0 %}" onclick="addToFavorites(this)">
                                 <i class="bx bx-star mr-2"></i> Delete to favorites
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                 <i class="bx bx-info-circle mr-2"></i> Folder information
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                 <i class="bx bx-trash mr-2"></i> Move to trash
                             </li>
                         </ul>
@@ -484,28 +484,37 @@ function downloadFile() {
     closeMenu(); 
 }
 //Option Favorie
-function addToFavorites() {
+function addToFavorites(element) {
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Add to Favorites',
         text: 'This folder has been added to favorites.',
         icon: 'success',
         confirmButtonText: 'OK'
+    }).then(() => {
+        window.location.href = urlBase;
     });
     closeMenu(); 
 }
 
 //Option Delete
-function moveToTrash() {
+function moveToTrash(element) {
+    event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Confirmation',
-        text: 'Are you sure you want to move this folder to the trash?',
+        text: 'Are you sure you want to move this file/folder to the trash?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, move it',
         cancelButtonText: 'Cancel'
     }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire('Moved!', 'The folder has been moved to the trash.', 'success');
+                Swal.fire('Moved!', 'The file has been moved to the trash.', 'success');
+                // Mettre le fichier à la corbeille
+                window.location.href = urlBase;
             }
     });
     closeMenu(); 
