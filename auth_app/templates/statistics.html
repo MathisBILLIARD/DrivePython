@@ -65,9 +65,9 @@
             <div class="storage p-5 bg-[#2e3136] rounded-lg transform -translate-y-12">
                 <span class="text-white text-base">Storage</span>
                 <div class="bg-white rounded-full h-1.5 overflow-hidden my-3 border border-gray-800">
-                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ files|sum_files_size|usage_percentage }}%;"></div>
+                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
                 </div>
-                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ files|sum_files_size|filesize_display }} of 100 Mo used</p>
+                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} of 100 Mo used</p>
             </div>
         </div>
     </nav>

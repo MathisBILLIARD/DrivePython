@@ -65,9 +65,9 @@
             <div class="storage p-5 bg-[#2e3136] rounded-lg transform -translate-y-12">
                 <span class="text-white text-base">Storage</span>
                 <div class="bg-white rounded-full h-1.5 overflow-hidden my-3 border border-gray-800">
-                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ files|sum_files_size|usage_percentage }}%;"></div>
+                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
                 </div>
-                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ files|sum_files_size|filesize_display }} of 100 Mo used</p>
+                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} of 100 Mo used</p>
             </div>
         </div>
     </nav>
@@ -132,7 +132,7 @@
                     </button>
                     <div id="create-menu" class="hidden absolute left-0 mt-2 w-36 bg-white rounded-lg shadow-lg transition-all duration-300 opacity-0 transform scale-95 z-50">
                         <ul class="py-2">
-                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="NewFolder()">
+                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer" data-url-base="{% url 'create_folder' 0 %}" onclick="NewFolder(this)">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
                                 New Folder
                             </li>
@@ -253,18 +253,18 @@
                                     <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                         <i class="bx bx-download mr-2"></i> Download
                                     </li>
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'rename_folder' 0 1 %}" onclick="RenameFolder(this)">
                                         <i class="bx bx-edit mr-2"></i> Rename
                                     </li>
                                     <hr class="my-1 border-gray-300">
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'add_favorite_folder' 0 %}" onclick="addToFavorites(this)">
                                         <i class="bx bx-star mr-2"></i> Add to favorites
                                     </li>
                                     <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                         <i class="bx bx-move mr-2"></i> Move
                                     </li>
                                     <hr class="my-1 border-gray-300">
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ folder.id }}" data-url-base="{% url 'trash_folder' 0 %}" onclick="moveToTrash(this)">
                                         <i class="bx bx-trash mr-2"></i> Move to trash
                                     </li>
                                 </ul>
@@ -308,7 +308,7 @@
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                             <i class="bx bx-download mr-2"></i> Download
                                         </li>
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
@@ -366,7 +366,7 @@
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                 <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
@@ -611,8 +611,10 @@ function moveToTrash(element) {
 }
 
 //Option Rename Info
-function RenameFolder() {
+function RenameFolder(element) {
     event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    let urlBase = element.getAttribute('data-url-base');
     Swal.fire({
         title: 'Rename Folder',
         input: 'text',
@@ -627,7 +629,11 @@ function RenameFolder() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success');
+            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success').then(() => {
+                urlBase = urlBase.replace('1', result.value);
+                urlBase = urlBase.replace('0', fileId);
+                window.location.href = urlBase;
+            });
         }
     });
     closeMenu(); 
@@ -732,7 +738,7 @@ function resetFilter(buttonId, chevronIconId) {
 }
 
 //Option Rename Info
-function NewFolder() {
+function NewFolder(element) {
     event.preventDefault();
     Swal.fire({
         title: 'New Folder',
@@ -748,7 +754,11 @@ function NewFolder() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire('New Folder!', `The folder has been created to: ${result.value}`, 'success');
+            const urlBase = element.getAttribute('data-url-base').replace('0', result.value);
+            Swal.fire('New Folder!', `The folder has been created to: ${result.value}`, 'success').then(() => {
+                window.location.href = urlBase;
+            });
+
         }
     });
     closeMenu(); 

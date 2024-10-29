@@ -36,13 +36,14 @@ def connexion(request):
 
 @login_required
 def acceuil(request):
+    all_user_files = UploadedFile.objects.filter(user=request.user)
     # Récupère tous  les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
     user_folders = Folder.objects.filter(user=request.user, trash=False)
     # Récupère tous les fichiers uploades n'étant pas dans les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
     user_files = UploadedFile.objects.filter(user=request.user, trash=False)
     # files not in user_folders
     files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
-    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
+    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def display_folder(request, folder_name):
     # Récupérer les fichiers de l'utilisateur dans le dossier spécifié
@@ -53,7 +54,7 @@ def display_folder(request, folder_name):
     ]
 
     # Passer `folder_name` directement si vous n'avez pas d'objet `Folder`
-    return render(request, 'folder_files.html', {'files': folder_files, 'folder_name': folder_name})
+    return render(request, 'folder_files.html', {'files': folder_files, 'folder_name': folder_name, 'all_user_files': user_files})
 
 def deconnexion(request):
     logout(request)
@@ -162,10 +163,12 @@ def upload_folder(request):
 
     return redirect('accueil')
 
-def rename_file(request, file_id):
+def rename_file(request, file_id, new_name):
     # Récupère le fichier à renommer
     file = UploadedFile.objects.get(id=file_id)
-    new_name = request.POST.get('new_name')
+    # Récupère l'extension du fichier
+    file_name, file_extension = os.path.splitext(file.file_name)
+    new_name = f'{new_name}{file_extension}'
     # Vérifier si le fichier existe déjà
     if UploadedFile.objects.filter(user=request.user, file_name=new_name).exists():
         # on ajouter un numéro à la fin du nom du fichier
@@ -174,15 +177,19 @@ def rename_file(request, file_id):
         while UploadedFile.objects.filter(user=request.user, file_name=new_name).exists():
             new_name = f'{file_name}_{i}{file_extension}'
             i += 1
+    # Renommer le fichier sur le serveur
+    old_file_path = file.file_path
+    new_file_path = os.path.join(os.path.dirname(old_file_path), new_name)
+    os.rename(old_file_path, new_file_path)
     # Renommer le fichier
     file.file_name = new_name
+    file.file_path = new_file_path
     file.save()
     return redirect('accueil')
 
-def rename_folder(request, folder_id):
+def rename_folder(request, folder_id, new_name):
     # Récupère le dossier à renommer
     folder = Folder.objects.get(id=folder_id)
-    new_name = request.POST.get('new_name')
     # Vérifier si le dossier existe déjà
     if Folder.objects.filter(user=request.user, folder_name=new_name).exists():
         # on ajouter un numéro à la fin du nom du dossier
@@ -191,8 +198,24 @@ def rename_folder(request, folder_id):
         while Folder.objects.filter(user=request.user, folder_name=new_name).exists():
             new_name = f'{folder_name}_{i}'
             i += 1
+    # Modifier le path des fichiers du dossier
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
     # Renommer le dossier
     folder.folder_name = new_name
+    # Renommer le dossier sur le serveur
+    old_folder_path = folder.folder_path
+    new_folder_path = os.path.join(settings.MEDIA_ROOT, 'uploads', f'user_{request.user.id}', new_name)
+    os.rename(old_folder_path, new_folder_path)
+    for file in folder_files:
+        file_path = file.file_path
+        new_file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', f'user_{request.user.id}', new_name, os.path.basename(file_path))
+        file.file_path = new_file_path
+        file.save()
+    folder.folder_path = new_folder_path
     folder.save()
     return redirect('accueil')
 
@@ -292,8 +315,7 @@ def restore_folder(request, folder_id):
     folder.save()
     return redirect('accueil')
 
-def create_folder(request):
-    folder_name = request.POST.get('folder_name')
+def create_folder(request, folder_name):
     # Vérifier si le dossier existe déjà
     if Folder.objects.filter(user=request.user, folder_name=folder_name).exists():
         # on ajouter un numéro à la fin du nom du dossier
@@ -343,23 +365,27 @@ def style(request):
 
 def trash(request):
     # Récupère tous les fichiers et les dossiers uploadés par l'utilisateur connecté dans la corbeille
+    all_user_files = UploadedFile.objects.filter(user=request.user)
     user_files = UploadedFile.objects.filter(user=request.user, trash=True)
     user_folders = Folder.objects.filter(user=request.user, trash=True)
     files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
-    return render(request, 'trash.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
+    return render(request, 'trash.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def recents(request):
-    return render(request, 'recents.html')
+    all_user_files = UploadedFile.objects.filter(user=request.user)
+    return render(request, 'recents.html', {'all_user_files': all_user_files})
 
 def statistics(request):
-    return render(request, 'statistics.html')
+    all_user_files = UploadedFile.objects.filter(user=request.user)
+    return render(request, 'statistics.html', {'all_user_files': all_user_files})
 
 def favorites(request):
+    all_user_files = UploadedFile.objects.filter(user=request.user)
     # Récupère tous les fichiers favoris de l'utilisateur connecté
     user_files = UploadedFile.objects.filter(user=request.user, favorite=True)
     user_folders = Folder.objects.filter(user=request.user, favorite=True)
     files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
-    return render(request, 'favorites.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
+    return render(request, 'favorites.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def user_files(request):
     # Récupère tous les fichiers uploadés par l'utilisateur connecté

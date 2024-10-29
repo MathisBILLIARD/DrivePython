@@ -65,9 +65,9 @@
             <div class="storage p-5 bg-[#2e3136] rounded-lg transform -translate-y-12">
                 <span class="text-white text-base">Storage</span>
                 <div class="bg-white rounded-full h-1.5 overflow-hidden my-3 border border-gray-800">
-                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ files|sum_files_size|usage_percentage }}%;"></div>
+                    <div class="progress-bar bg-[var(--primary-color)] h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
                 </div>
-                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ files|sum_files_size|filesize_display }} of 100 Mo used</p>
+                <p class="text-custom-gray mt-1 text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} of 100 Mo used</p>
             </div>
         </div>
     </nav>
@@ -196,7 +196,7 @@
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                     <i class="bx bx-download mr-2"></i> Download
                                 </li>
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'rename_folder' 0 1 %}" onclick="RenameFolder(this)">
                                     <i class="bx bx-edit mr-2"></i> Rename
                                 </li>
                                 <hr class="my-1 border-gray-300">
@@ -241,7 +241,7 @@
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                             <i class="bx bx-download mr-2"></i> Download
                                         </li>
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
@@ -296,7 +296,7 @@
                     </div>
                     <div class="hidden absolute z-10 left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
                         <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
@@ -485,8 +485,9 @@ function moveToTrash(element) {
 }
 
 //Option Rename Info
-function RenameFolder() {
-    event.preventDefault();
+function RenameFolder(element) {
+    const fileId = element.getAttribute('data-file-id');
+    let urlBase = element.getAttribute('data-url-base');
     Swal.fire({
         title: 'Rename Folder',
         input: 'text',
@@ -501,9 +502,17 @@ function RenameFolder() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success');
+            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success').then(() => {
+                urlBase = urlBase.replace('1', result.value);
+                urlBase = urlBase.replace('0', fileId);
+                window.location.href = urlBase;
+            });
         }
     });
+    closeMenu(); 
+}
+function folderInfo() {
+    event.preventDefault();
     closeMenu(); 
 }
 function folderInfo() {
