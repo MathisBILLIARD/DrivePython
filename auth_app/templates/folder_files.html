@@ -135,7 +135,7 @@
                     </button>
                     <div id="create-menu" class="hidden absolute left-0 mt-2 w-36 bg-white rounded-lg shadow-lg transition-all duration-300 opacity-0 transform scale-95 z-50">
                         <ul class="py-2">
-                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="NewFolder()">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
                                 New Folder
                             </li>
@@ -411,19 +411,6 @@
                     Delete account
             </button>
         </div>
-    </div>
-
-<!-- Popup new folder -->
-    <div id="myModal" class="fixed inset-0 flex items-center justify-center z-30 hidden">
-        <div class="modal-content bg-white rounded-lg shadow-lg p-6 w-96 z-40">
-            <h2 class="text-xl font-bold mb-4">Create a new folder</h2>
-            <input type="text" id="folderName" placeholder="Untitled Folder" class="w-full p-2 focus:outline-none border border-gray-300 rounded" />
-            <div class="flex justify-end mt-4">
-                <button id="cancel-btn" class="px-4 py-2 bg-[#f6f6f9] rounded  transition-all duration-200 hover:scale-95 ">Cancel</button>
-                <button id="create-btn" class="ml-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded  transition-all duration-200 hover:scale-95 ">Create</button>
-            </div>
-        </div>
-        <div id="modal-overlay" class="modal-overlay fixed inset-0 bg-black opacity-50"></div>
     </div>
 
 <script>
@@ -734,22 +721,28 @@ function resetFilter(buttonId, chevronIconId) {
     filterBtn.classList.add('border-gray-300');
     resetChevron(document.getElementById(chevronIconId));
 }
-
-// Creer un nouveau folder popup
-const newFolderBtn = document.getElementById('new-folder-btn');
-const modal = document.getElementById('myModal');
-const cancelBtn = document.getElementById('cancel-btn');
-const modalOverlay = document.getElementById('modal-overlay');
-newFolderBtn.onclick = function() {
-    modal.classList.remove('hidden');
+//Option Rename Info
+function NewFolder() {
+    event.preventDefault();
+    Swal.fire({
+        title: 'New Folder',
+        input: 'text',
+        inputPlaceholder: 'Enter name',
+        showCancelButton: true,
+        confirmButtonText: 'New Folder',
+        cancelButtonText: 'Cancel',
+        preConfirm: (newFolderName) => {
+            if (!newFolderName) {
+                Swal.showValidationMessage('Please enter a valid name');
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('New Folder!', `The folder has been created to: ${result.value}`, 'success');
+        }
+    });
+    closeMenu(); 
 }
-cancelBtn.onclick = function() {
-    modal.classList.add('hidden');
-}
-modalOverlay.onclick = function() {
-    modal.classList.add('hidden');
-}
-
 // Fonction pour gérer les menus déroulants create & upload
 const toggleMenu = (btnId, menuId, chevronId) => {
 const menu = document.getElementById(menuId);
