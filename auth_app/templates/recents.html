@@ -171,17 +171,19 @@
    
     <!-- Grid -->
     <div id="grid-view">
-        <div class="grid grid-cols-3 gap-4 mt-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
             {% for folder in folders %}
             <div class="flex flex-col space-y-4"> 
                 <div class="flex items-center justify-between p-3 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100">
                     <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
-                    </div>
+                    </div>      
                     <div class="ml-3 flex-grow">
-                        <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
-                        <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
-                    </div>
+                        <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
+                            <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">{{ folder.folder_name }}</p>
+                            <p class="text-sm mt-[-3px] text-gray-500 ">{{ files|number_file_in_folder:folder }}</p>
+                        </a>
+                    </div>   
                     <div class="relative">
                         <div class="text-gray-500 text-2xl cursor-pointer p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
                             <i class='bx bx-dots-vertical-rounded'></i>
@@ -192,7 +194,7 @@
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                     <i class="bx bx-download mr-2"></i> Download
                                 </li>
-                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                                <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
                                     <i class="bx bx-edit mr-2"></i> Rename
                                 </li>
                                 <hr class="my-1 border-gray-300">
@@ -200,7 +202,7 @@
                                     <i class="bx bx-star mr-2"></i> Add to favorites
                                 </li>
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                    <i class="bx bx-info-circle mr-2"></i> Folder information
+                                    <i class="bx bx-move mr-2"></i> Move
                                 </li>
                                 <hr class="my-1 border-gray-300">
                                 <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
@@ -216,16 +218,16 @@
         </div>
 
             <!-- Files -->  
-            <div class="grid grid-cols-3 gap-4 mt-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 {% for file in files %}
-                <div class="flex flex-col space-y-4 mb-3"> 
+                <div class="flex flex-col space-y-4 "> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center justify-center">
                                 <i class="bx bx-folder text-black text-2xl"></i>
                             </div>
                             <div class="ml-3 flex-grow">
-                                <p class="font-semibold text-[16px] text-gray-800 truncate w-44">{{ file.file_name }} (Téléchargé le {{ file.upload_date }})</p>
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-44">{{ file.file_name }} </p>
                             </div>
                             <div class="relative">
                                 <div class="text-black text-2xl cursor-pointer p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">
@@ -237,7 +239,7 @@
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                             <i class="bx bx-download mr-2"></i> Download
                                         </li>
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
@@ -245,7 +247,7 @@
                                             <i class="bx bx-star mr-2"></i> Add to favorites
                                         </li>
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                            <i class="bx bx-info-circle mr-2"></i> Folder information
+                                            <i class="bx bx-move mr-2"></i> Move
                                         </li>
                                         <hr class="my-1 border-gray-300">
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
@@ -291,7 +293,7 @@
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('Renommer')">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
                                 <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
@@ -299,7 +301,7 @@
                                 <i class="bx bx-star mr-2"></i> Add to favorites
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
-                                <i class="bx bx-info-circle mr-2"></i> Folder information
+                                <i class="bx bx-move mr-2"></i> Move
                             </li>
                             <hr class="my-1 border-gray-300">
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
@@ -330,19 +332,6 @@
                     Delete account
             </button>
         </div>
-    </div>
-
-<!-- Popup rename folder -->
-    <div id="renameModal" class="fixed inset-0 flex items-center justify-center z-30 hidden">
-        <div class="modal-content bg-white rounded-lg shadow-lg p-6 w-96 z-40">
-            <h2 class="text-xl font-bold mb-4">Rename Folder</h2>
-            <input type="text" id="renameFolderName" placeholder="New Folder Name" class="w-full p-2 focus:outline-none border border-gray-300 rounded" />
-            <div class="flex justify-end mt-4">
-                <button id="rename-cancel-btn" class="px-4 py-2 bg-[#f6f6f9] rounded transition-all duration-200 hover:scale-95">Cancel</button>
-                <button id="rename-btn" class="ml-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded transition-all duration-200 hover:scale-95">Rename</button>
-            </div>
-        </div>
-        <div id="rename-modal-overlay" class="modal-overlay fixed inset-0 bg-black opacity-50"></div>
     </div>
 
 <script>
@@ -403,33 +392,6 @@ deleteAccountBtn.onclick = function() {
         }
     })
 }
-
-// Popup rename folder
-const renameBtn = document.querySelectorAll('li[onclick*="selectOption(\'Renommer\')"]')[0]; 
-const renameModal = document.getElementById('renameModal');
-const renameCancelBtn = document.getElementById('rename-cancel-btn');
-const renameModalOverlay = document.getElementById('rename-modal-overlay');
-
-renameBtn.onclick = function() {
-    renameModal.classList.remove('hidden');
-    closeMenu(); 
-}
-renameCancelBtn.onclick = function() {
-    renameModal.classList.add('hidden');
-}
-renameModalOverlay.onclick = function() {
-    renameModal.classList.add('hidden');
-}
-function selectOption(option) {
-    if (option === 'Renommer') {
-        renameModal.classList.remove('hidden'); 
-    }
-    closeMenu(); 
-}
-document.getElementById('rename-btn').onclick = function() {
-    const newName = document.getElementById('renameFolderName').value;
-    renameModal.classList.add('hidden'); 
-};
 
 let openDropdown = null;
 
@@ -498,7 +460,28 @@ function moveToTrash() {
     });
     closeMenu(); 
 }
-
+//Option Rename Info
+function RenameFolder() {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Rename Folder',
+        input: 'text',
+        inputPlaceholder: 'Enter new name',
+        showCancelButton: true,
+        confirmButtonText: 'Rename',
+        cancelButtonText: 'Cancel',
+        preConfirm: (newFolderName) => {
+            if (!newFolderName) {
+                Swal.showValidationMessage('Please enter a valid name');
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success');
+        }
+    });
+    closeMenu(); 
+}
 function folderInfo() {
     closeMenu(); 
 }
