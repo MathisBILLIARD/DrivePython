@@ -1,3 +1,4 @@
+import shutil
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm 
 from .form import CustomUserCreationForm
@@ -35,10 +36,13 @@ def connexion(request):
 
 @login_required
 def acceuil(request):
-    # Récupère tous les fichiers uploadés par l'utilisateur connecté
-    user_files = UploadedFile.objects.filter(user=request.user)
-    user_folders = Folder.objects.filter(user=request.user)
-    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+    # Récupère tous  les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
+    user_folders = Folder.objects.filter(user=request.user, trash=False)
+    # Récupère tous les fichiers uploades n'étant pas dans les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
+    user_files = UploadedFile.objects.filter(user=request.user, trash=False)
+    # files not in user_folders
+    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
 
 def display_folder(request, folder_name):
     # Récupérer les fichiers de l'utilisateur dans le dossier spécifié
@@ -61,7 +65,7 @@ def upload_file(request):
         # Vérifier si la somme des tailles des fichiers de l'utilisateur plus le fichier uploader dépasse la limite de 100 Mo
         user_files = UploadedFile.objects.filter(user=request.user)
         total_size = sum([file.file_size for file in user_files]) + uploaded_file.size
-        if total_size > 100 * 1024 * 1024:  # 100 Mo en octets
+        if total_size > 100 * 1000 * 1000:  # 100 Mo en octets
             messages.error(request, 'La taille totale de vos fichiers dépasse la limite autorisée.')
             return redirect('accueil')
 
@@ -70,6 +74,15 @@ def upload_file(request):
         destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder)
         if not os.path.exists(destination_folder):
             os.makedirs(destination_folder)
+
+        # Vérifier si le fichier existe déjà
+        if UploadedFile.objects.filter(user=request.user, file_name=uploaded_file.name).exists():
+            # on ajouter un numéro à la fin du nom du fichier
+            file_name, file_extension = os.path.splitext(uploaded_file.name)
+            i = 1
+            while UploadedFile.objects.filter(user=request.user, file_name=uploaded_file.name).exists():
+                uploaded_file.name = f'{file_name}_{i}{file_extension}'
+                i += 1
 
         # Chemin de sauvegarde complet pour le fichier
         file_path = os.path.join(destination_folder, uploaded_file.name)
@@ -88,12 +101,12 @@ def upload_file(request):
         )
         uploaded_file_instance.save()
         user_files = UploadedFile.objects.filter(user=request.user)
-        user_folders = Folder.objects.filter(user=request.user)
 
+        # lien vers la fonction accueil
         # Redirection ou message de succès
-        return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+        return redirect('accueil')        
 
-    return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+    return redirect('accueil') 
 
 def upload_folder(request):
     if request.method == 'POST' and request.FILES.getlist('files'):
@@ -102,13 +115,20 @@ def upload_folder(request):
         # Vérifier si la somme des tailles des fichiers de l'utilisateur plus la taille des fichiers uploader dépasse la limite de 100 Mo
         user_files = UploadedFile.objects.filter(user=request.user)
         total_size = sum([file.file_size for file in user_files]) + sum([file.size for file in files])
-        if total_size > 100 * 1024 * 1024:  # 100 Mo en octets
+        if total_size > 100 * 1000 * 1000:  # 100 Mo en octets
             messages.error(request, 'La taille totale de vos fichiers dépasse la limite autorisée.')
             return redirect('accueil')
         # Définir le dossier utilisateur
         user_folder = f'user_{request.user.id}'
+        # Si le dossier existe déjà, on ajoute un numéro à la fin
+        if Folder.objects.filter(user=request.user, folder_name=folder_name).exists():
+            folder_name1, folder_extension = os.path.splitext(folder_name)
+            i = 1
+            while Folder.objects.filter(user=request.user, folder_name=folder_name).exists():
+                folder_name = f'{folder_name1}_{i}'
+                i += 1
         base_destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
-        folder_destination = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder)
+        folder_destination = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
 
         # Créer le dossier de destination
         os.makedirs(base_destination_folder, exist_ok=True)
@@ -137,20 +157,196 @@ def upload_folder(request):
             )
             uploaded_file_instance.save()
 
-
-        user_files = UploadedFile.objects.filter(user=request.user)
-        user_folders = Folder.objects.filter(user=request.user)
-
         # Redirection ou message de succès
-        return render(request, 'accueil.html', {'files': user_files, 'folders': user_folders})
+        return redirect('accueil')
 
-    return render(request, 'accueil.html')
+    return redirect('accueil')
+
+def rename_file(request, file_id):
+    # Récupère le fichier à renommer
+    file = UploadedFile.objects.get(id=file_id)
+    new_name = request.POST.get('new_name')
+    # Vérifier si le fichier existe déjà
+    if UploadedFile.objects.filter(user=request.user, file_name=new_name).exists():
+        # on ajouter un numéro à la fin du nom du fichier
+        file_name, file_extension = os.path.splitext(new_name)
+        i = 1
+        while UploadedFile.objects.filter(user=request.user, file_name=new_name).exists():
+            new_name = f'{file_name}_{i}{file_extension}'
+            i += 1
+    # Renommer le fichier
+    file.file_name = new_name
+    file.save()
+    return redirect('accueil')
+
+def rename_folder(request, folder_id):
+    # Récupère le dossier à renommer
+    folder = Folder.objects.get(id=folder_id)
+    new_name = request.POST.get('new_name')
+    # Vérifier si le dossier existe déjà
+    if Folder.objects.filter(user=request.user, folder_name=new_name).exists():
+        # on ajouter un numéro à la fin du nom du dossier
+        folder_name, folder_extension = os.path.splitext(new_name)
+        i = 1
+        while Folder.objects.filter(user=request.user, folder_name=new_name).exists():
+            new_name = f'{folder_name}_{i}'
+            i += 1
+    # Renommer le dossier
+    folder.folder_name = new_name
+    folder.save()
+    return redirect('accueil')
+
+def add_favorite(request, file_id):
+    # Récupère le fichier à ajouter aux favoris
+    file = UploadedFile.objects.get(id=file_id)
+    file.favorite = True
+    file.save()
+    return redirect('accueil')
+
+def remove_favorite(request, file_id):
+    # Récupère le fichier à retirer des favoris
+    file = UploadedFile.objects.get(id=file_id)
+    file.favorite = False
+    file.save()
+    return redirect('accueil')
+
+def add_favorite_folder(request, folder_id):
+    # Récupère le dossier à ajouter aux favoris
+    folder = Folder.objects.get(id=folder_id)
+    folder.favorite = True
+    # Ajouter tous les fichiers du dossier aux favoris
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
+    for file in folder_files:
+        file.favorite = True
+        file.save()
+    folder.save()
+    return redirect('accueil')
+
+def remove_favorite_folder(request, folder_id):
+    # Récupère le dossier à retirer des favoris
+    folder = Folder.objects.get(id=folder_id)
+    folder.favorite = False
+    # Retirer tous les fichiers du dossier des favoris
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
+    for file in folder_files:
+        file.favorite = False
+        file.save()
+    folder.save()
+    return redirect('accueil')
+
+
+def trash_file(request, file_id):
+    # Récupère le fichier à mettre dans la corbeille
+    file = UploadedFile.objects.get(id=file_id)
+    file.trash = True
+    file.favorite = False
+    file.save()
+    return redirect('accueil')
+
+def trash_folder(request, folder_id):
+    # Récupère le dossier à mettre dans la corbeille
+    folder = Folder.objects.get(id=folder_id)
+    folder.trash = True
+    folder.favorite = False
+    # Mettre tous les fichiers du dossier dans la corbeille
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
+    for file in folder_files:
+        file.trash = True
+        file.favorite = False
+        file.save()
+    folder.save()
+    return redirect('accueil')
+
+def restore_file(request, file_id):
+    # Récupère le fichier à restaurer
+    file = UploadedFile.objects.get(id=file_id)
+    file.trash = False
+    file.save()
+    return redirect('accueil')
+
+def restore_folder(request, folder_id):
+    # Récupère le dossier à restaurer
+    folder = Folder.objects.get(id=folder_id)
+    folder.trash = False
+    # Restaurer tous les fichiers du dossier
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
+    for file in folder_files:
+        file.trash = False
+        file.save()
+    folder.save()
+    return redirect('accueil')
+
+def create_folder(request):
+    folder_name = request.POST.get('folder_name')
+    # Vérifier si le dossier existe déjà
+    if Folder.objects.filter(user=request.user, folder_name=folder_name).exists():
+        # on ajouter un numéro à la fin du nom du dossier
+        folder_name1, folder_extension = os.path.splitext(folder_name)
+        i = 1
+        while Folder.objects.filter(user=request.user, folder_name=folder_name).exists():
+            folder_name = f'{folder_name1}_{i}'
+            i += 1
+    # Créer le dossier
+    user_folder = f'user_{request.user.id}'
+    destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder, folder_name)
+    os.makedirs(destination_folder, exist_ok=True)
+    uploaded_folder_instance = Folder(
+        user=request.user,
+        folder_name=folder_name,
+        folder_path=destination_folder
+    )
+    uploaded_folder_instance.save()
+    return redirect('accueil')
+
+def delete_file(request, file_id):
+    # Récupère le fichier à supprimer
+    file = UploadedFile.objects.get(id=file_id)
+    file.delete()
+    # Supprimer le fichier du serveur
+    os.remove(file.file_path)
+    return redirect('accueil')
+
+def delete_folder(request, folder_id):
+    # Récupère le dossier à supprimer
+    folder = Folder.objects.get(id=folder_id)
+    folder.delete()
+    # Supprimer tous les fichiers du dossier
+    user_files = UploadedFile.objects.filter(user=request.user)
+    folder_files = [
+        file for file in user_files
+        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+    ]
+    for file in folder_files:
+        file.delete()
+    # Supprimer tout le dossier du serveur
+    shutil.rmtree(folder.folder_path)
+    return redirect('accueil')
 
 def style(request):
     return render(request, 'style.css', content_type='text/css')
 
 def trash(request):
-    return render(request, 'trash.html')
+    # Récupère tous les fichiers et les dossiers uploadés par l'utilisateur connecté dans la corbeille
+    user_files = UploadedFile.objects.filter(user=request.user, trash=True)
+    user_folders = Folder.objects.filter(user=request.user, trash=True)
+    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    return render(request, 'trash.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
 
 def recents(request):
     return render(request, 'recents.html')
@@ -159,7 +355,11 @@ def statistics(request):
     return render(request, 'statistics.html')
 
 def favorites(request):
-    return render(request, 'favorites.html')
+    # Récupère tous les fichiers favoris de l'utilisateur connecté
+    user_files = UploadedFile.objects.filter(user=request.user, favorite=True)
+    user_folders = Folder.objects.filter(user=request.user, favorite=True)
+    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    return render(request, 'favorites.html', {'files': user_files, 'folders': user_folders, 'files_not_folder': files_not_folder})
 
 def user_files(request):
     # Récupère tous les fichiers uploadés par l'utilisateur connecté

@@ -11,6 +11,8 @@ class UploadedFile(models.Model):
     file_path = models.CharField(max_length=255)  # Chemin du fichier stocké
     file_size = models.IntegerField(default=0)  # Taille du fichier en octets
     upload_date = models.DateTimeField(auto_now_add=True)
+    trash = models.BooleanField(default=False)  # Indique si le fichier est dans la corbeille
+    favorite = models.BooleanField(default=False)  # Indique si le fichier est dans les favoris
 
     def __str__(self):
         return f"{self.file_name} (Uploaded by {self.user.username})"
@@ -21,6 +23,8 @@ class Folder(models.Model):
     folder_name = models.CharField(max_length=255)
     folder_path = models.CharField(max_length=255)  # Chemin du dossier stocké
     upload_date = models.DateTimeField(auto_now_add=True)
+    trash = models.BooleanField(default=False)  # Indique si le dossier est dans la corbeille
+    favorite = models.BooleanField(default=False)  # Indique si le dossier est dans les favoris
     
     def __str__(self):
         return f"{self.folder_name} (Uploaded by {self.user.username})"
