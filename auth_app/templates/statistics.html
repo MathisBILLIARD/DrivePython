@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% url 'style' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
     </style>
@@ -82,15 +83,105 @@
             <i id="profileIcon" class="bx bx-user icon cursor-pointer hover:text-[var(--primary-color)]"></i>
         </div>
     </div>
-    
-    <!-- Upload + Create -->
     <div class="home bg-white w-[calc(100%-250px)] fixed left-[250px] transition-all duration-500 justify-between items-center py-[17px] z-20">
         <hr class="h-[1.5px] mt-[60px] bg-gray-200 w-[100%] mb-4"></hr> 
         <div class="files flex flex-col md:flex-row justify-between  px-[30px]">
-            <p class="font-bold text-2xl text-black bold">Statistics</p>      
+            <p class="font-bold text-2xl text-black bold">Statistics</p>   
         </div>
+        <p class="text-lg text-black bold mt-[10px] px-[30px]">File Type Distribution</p>
     </div>
-    
+    <div class=" overflow-y-auto  home w-[calc(100%-250px)] px-[30px] h-[100%] relative pt-[170px] left-[250px] transition-all duration-500 justify-between items-center ">    
+        <div class=" grid grid-cols-2 md:grid-cols-4 gap-4 ">
+            <div id="grid-view" class="flex flex-col ">
+                <div class="grid mt-3 ">
+                    <div class="p-3 rounded-lg border-gray-300 border ">
+                        <div class="flex items-center justify-between ">
+                            <div class="flex items-center justify-center p-2 h-10 bg-blue-100 rounded-lg">
+                                <i class="bx bx-folder text-blue-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Documents</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                            </div>         
+                        </div>    
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <div class="bg-blue-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="progress-bar bg-blue-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+            <div id="grid-view" class="flex flex-col ">
+                <div class="grid mt-3 ">
+                    <div class="p-3 rounded-lg border-gray-300 border ">
+                        <div class="flex items-center justify-between ">
+                            <div class="flex items-center justify-center p-2 h-10 bg-green-100 rounded-lg">
+                                <i class="bx bx-music text-green-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Audio</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                            </div>         
+                        </div>    
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <div class="bg-green-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="progress-bar bg-green-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+            <div id="grid-view" class="flex flex-col ">
+                <div class="grid mt-3 ">
+                    <div class="p-3 rounded-lg border-gray-300 border ">
+                        <div class="flex items-center justify-between ">
+                            <div class="flex items-center justify-center p-2 h-10 bg-yellow-100 rounded-lg">
+                                <i class="bx bx-image text-yellow-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Pictures</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                            </div>         
+                        </div>    
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <div class="bg-yellow-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="progress-bar bg-yellow-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+            <div id="grid-view" class="flex flex-col ">
+                <div class="grid mt-3 ">
+                    <div class="p-3 rounded-lg border-gray-300 border ">
+                        <div class="flex items-center justify-between ">
+                            <div class="flex items-center justify-center p-2 h-10 bg-red-100 rounded-lg">
+                                <i class="bx bx-video text-red-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-3 flex-grow">
+                                <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Video</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                            </div>         
+                        </div>    
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <div class="bg-red-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="progress-bar bg-red-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+        </div>  
+        <div class="flex justify-between items-center mt-[20px] ">
+            <p class="text-lg text-black bold ">Storage Usage Over Time</p>
+            <select id="timeScale" class="px-2 py-1 border border-gray-300 rounded-md">
+                <option value="hour">Hour</option>
+                <option value="day"selected>Day</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+            </select>
+        </div>
+            <canvas id="usageChart" width="800" height="200"></canvas>
+    </div>
+    </div>  
+
 <!-- Popup Profil -->
     <div id="profilePopup" class="hidden fixed top-0 right-0 w-full max-w-xs z-50" style="margin: 30px;">
         <div class="bg-gray-100 rounded-lg shadow-lg p-6 relative w-full max-w-sm">
@@ -107,6 +198,127 @@
         </div>
     </div>
 <script>
+// Obtenir la date actuelle pour générer dynamiquement les labels
+const currentDate = new Date();
+
+// Fonction pour afficher les mois en lettres
+function getMonthName(monthIndex) {
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  return monthNames[monthIndex];
+}
+
+// Fonction pour générer les labels en fonction de l'échelle et de la date actuelle
+function generateLabels(scale) {
+  const labels = [];
+  const date = new Date(currentDate); // Clone pour ne pas modifier la date d'origine
+
+  switch (scale) {
+    case 'hour':
+      for (let i = 0; i < 12; i++) { // Les 12 dernières heures
+        labels.unshift(`${date.getHours()}:00`);
+        date.setHours(date.getHours() - 1);
+      }
+      break;
+    case 'day':
+      for (let i = 0; i < 7; i++) { // Les 7 derniers jours
+        labels.unshift(`${date.getDate()} ${getMonthName(date.getMonth())}`);
+        date.setDate(date.getDate() - 1);
+      }
+      break;
+    case 'month':
+      for (let i = 0; i < 4; i++) { // Les 4 derniers mois
+        labels.unshift(`${getMonthName(date.getMonth())}`);
+        date.setMonth(date.getMonth() - 1);
+      }
+      break;
+    case 'year':
+      for (let i = 0; i < 5; i++) { // Les 5 dernières années
+        labels.unshift(`${date.getFullYear()}`);
+        date.setFullYear(date.getFullYear() - 1);
+      }
+      break;
+  }
+  return labels;
+}
+
+// Structure des données (exemple de valeurs fixes pour chaque échelle)
+const dataSets = {
+  hour: Array(12).fill().map(() => ({ documents: Math.random() * 20, images: Math.random() * 15, videos: Math.random() * 25, autres: Math.random() * 10 })),
+  day: Array(7).fill().map(() => ({ documents: Math.random() * 50, images: Math.random() * 40, videos: Math.random() * 60, autres: Math.random() * 30 })),
+  month: Array(4).fill().map(() => ({ documents: Math.random() * 150, images: Math.random() * 120, videos: Math.random() * 200, autres: Math.random() * 100 })),
+  year: Array(5).fill().map(() => ({ documents: Math.random() * 500, images: Math.random() * 450, videos: Math.random() * 600, autres: Math.random() * 300 }))
+};
+
+// Fonction pour obtenir les données en barres empilées avec les labels dynamiques
+function getStackedData(scale) {
+  return {
+    labels: generateLabels(scale),
+    datasets: [
+      {
+        label: 'Documents',
+        backgroundColor: '#3b82f6',
+        data: dataSets[scale].map(item => item.documents),
+      },
+      {
+        label: 'Pictures',
+        backgroundColor: '#facc15',
+        data: dataSets[scale].map(item => item.images),
+      },
+      {
+        label: 'Video',
+        backgroundColor: '#ef4444',
+        data: dataSets[scale].map(item => item.videos),
+      },
+      {
+        label: 'Audio',
+        backgroundColor: '#22c55e',
+        data: dataSets[scale].map(item => item.autres),
+      },
+    ],
+  };
+}
+
+// Configuration du graphique
+const ctx = document.getElementById('usageChart').getContext('2d');
+const usageChart = new Chart(ctx, {
+  type: 'bar',
+  data: getStackedData('day'), // Afficher les données par jour par défaut
+  options: {
+    scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        beginAtZero: true,
+        stacked: true,
+        grid: {
+          color: '#e5e7eb',
+        },
+        ticks: {
+          callback: (value) => `${value} Mo`,
+        },
+      },
+    },
+    plugins: {
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: (context) => `${context.raw.toFixed(2)} Mo`,
+        },
+      },
+    },
+    responsive: true,
+  },
+});
+
+// Mise à jour de l'échelle de temps en fonction de la sélection
+document.getElementById('timeScale').addEventListener('change', (event) => {
+  const selectedScale = event.target.value;
+  usageChart.data = getStackedData(selectedScale);
+  usageChart.update();
+});
+
+
 // Popup Profil
 const profileIcon = document.getElementById('profileIcon');
 const profilePopup = document.getElementById('profilePopup');
