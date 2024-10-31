@@ -179,10 +179,8 @@
                         <i class="bx bx-folder text-blue-500 text-2xl"></i>
                     </div>           
                     <div class="ml-3 flex-grow">
-                        <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
                             <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">{{ folder.folder_name }}</p>
                             <p class="text-sm mt-[-3px] text-gray-500 ">{{ files|number_file_in_folder:folder }}</p>
-                        </a>
                     </div>   
                     <div class="relative">
                         <div class="text-gray-500 text-2xl cursor-pointer p-2 rounded-full hover:bg-gray-200 transition-colors duration-200" onclick="toggleMenus(event)">

@@ -237,7 +237,7 @@
                             <i class="bx bx-folder text-blue-500 text-2xl"></i>
                         </div>
                         <div class="ml-3 flex-grow">
-                            <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
+                            <a href="{% url 'display_folder' folder_id=folder.id %}">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">{{ folder.folder_name }}</p>
                                 <p class="text-sm mt-[-3px] text-gray-500 ">{{ files|number_file_in_folder:folder }}</p>
                             </a>

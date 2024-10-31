@@ -42,6 +42,13 @@ def number_file_in_folder(files, folder):
     """
     Compte le nombre de fichiers dans un dossier.
     """
-    number = len([file for file in files if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name])
+    number = len([file for file in files if os.path.dirname(file.file_path) == folder.folder_path])
     # fichier ou fichiers
     return f"{number} fichier{'s' if number > 1 else ''}"
+
+@register.filter
+def folder_name(folder_path):
+    """
+    Extrait le nom du dossier à partir du chemin complet.
+    """
+    return os.path.basename(folder_path)

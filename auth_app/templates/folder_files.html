@@ -106,7 +106,7 @@
                         <ul class="py-2">
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-file text-[16px] mr-2'></i>
-                                <form method="post" action="{% url 'upload_file_in_folder' folder_name %}" enctype="multipart/form-data" id="fileUploadForm">
+                                <form method="post" action="{% url 'upload_file_in_folder' folder_id %}" enctype="multipart/form-data" id="fileUploadForm">
                                     {% csrf_token %}
                                     <input type="file" name="file" id="fileInput" style="display: none;" onchange="validateFile()">
                                     <button type="button" onclick="document.getElementById('fileInput').click();">Upload File</button>
@@ -114,7 +114,7 @@
                             </li>
                             <li class="flex items-center px-4 py-2 text-[14px] hover:bg-gray-100 cursor-pointer">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
-                                <form method="post" action="{% url 'upload_folder' %}" enctype="multipart/form-data" id="folderUploadForm">
+                                <form method="post" action="{% url 'upload_folder_in_folder' folder_id %}" enctype="multipart/form-data" id="folderUploadForm">
                                     {% csrf_token %}
                                     <input type="file" name="files" id="folderInput" style="display: none;" webkitdirectory multiple onchange="submitFolderForm()">
                                     <input type="hidden" name="folder_name" id="folderNameInput">
@@ -135,7 +135,7 @@
                     </button>
                     <div id="create-menu" class="hidden absolute left-0 mt-2 w-36 bg-white rounded-lg shadow-lg transition-all duration-300 opacity-0 transform scale-95 z-50">
                         <ul class="py-2">
-                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="NewFolder()">
+                            <li id="new-folder-btn" class="flex items-center text-[14px] px-4 py-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder_id }}" data-url-base="{% url 'create_folder_in_folder' 0 1 %}" onclick="NewFolder(this)">
                                 <i class='bx bx-folder text-[16px] mr-2'></i> 
                                 New Folder
                             </li>
@@ -240,7 +240,7 @@
                             <i class="bx bx-folder text-blue-500 text-2xl"></i>
                         </div>
                         <div class="ml-3 flex-grow">
-                            <a href="{% url 'display_folder' folder_name=folder.folder_name %}">
+                            <a href="{% url 'display_folder' folder_id=folder.id %}">
                             <p class="font-semibold text-[16px] text-gray-800 truncate w-40">{{ folder.folder_name }}</p>
                             <p class="text-sm mt-[-3px] text-gray-500">{{ files|number_file_in_folder:folder }}</p>
                         </a>
@@ -256,18 +256,18 @@
                                     <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                         <i class="bx bx-download mr-2"></i> Download
                                     </li>
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'rename_folder' 0 1 %}" onclick="RenameFolder(this)">
                                         <i class="bx bx-edit mr-2"></i> Rename
                                     </li>
                                     <hr class="my-1 border-gray-300">
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ folder.id }}" data-url-base="{% url 'add_favorite_folder' 0 %}" onclick="addToFavorites(this)">
                                         <i class="bx bx-star mr-2"></i> Add to favorites
                                     </li>
                                     <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                         <i class="bx bx-move mr-2"></i> Move
                                     </li>
                                     <hr class="my-1 border-gray-300">
-                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                    <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ folder.id }}" data-url-base="{% url 'trash_folder' 0 %}" onclick="moveToTrash(this)">
                                         <i class="bx bx-trash mr-2"></i> Move to trash
                                     </li>
                                 </ul>
@@ -289,7 +289,7 @@
                 <span class="text-[16px]">Files</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                {% for file in files %}
+                {% for file in folder_files %}
                 <div class="flex flex-col space-y-4"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                         <div class="flex items-center justify-between">
@@ -309,18 +309,18 @@
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                             <i class="bx bx-download mr-2"></i> Download
                                         </li>
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                             <i class="bx bx-edit mr-2"></i> Rename
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'add_favorite' 0 %}" onclick="addToFavorites(this)">
                                             <i class="bx bx-star mr-2"></i> Add to favorites
                                         </li>
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                             <i class="bx bx-move mr-2"></i> Move
                                         </li>
                                         <hr class="my-1 border-gray-300">
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                             <i class="bx bx-trash mr-2"></i> Move to trash
                                         </li>
                                     </ul>
@@ -367,18 +367,18 @@
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="RenameFolder()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
                                 <i class="bx bx-edit mr-2"></i> Rename
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="addToFavorites()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'add_favorite' 0 %}" onclick="addToFavorites(this)">
                                 <i class="bx bx-star mr-2"></i> Add to favorites
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="folderInfo()">
                                 <i class="bx bx-move mr-2"></i> Move
                             </li>
                             <hr class="my-1 border-gray-300">
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" onclick="moveToTrash()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer text-red-500" data-file-id="{{ file.id }}" data-url-base="{% url 'trash_file' 0 %}" onclick="moveToTrash(this)">
                                 <i class="bx bx-trash mr-2"></i> Move to trash
                             </li>
                         </ul>
@@ -420,7 +420,7 @@
     const maxSizeInMB = 40;
     let valid = true;
     for (const file of input.files) {
-        if (file.size > maxSizeInMB * 1024 * 1024) {  
+        if (file.size > maxSizeInMB * 1000 * 1000) {  
             alert(`Le fichier ${file.name} dépasse la limite de 40 Mo.`);
             valid = false;
             break;
@@ -441,7 +441,7 @@ function validateFile() {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
     const maxSizeInMB = 40;
-    if (file && file.size > maxSizeInMB * 1024 * 1024) {
+    if (file && file.size > maxSizeInMB * 1000 * 1000) {
         alert("Le fichier dépasse la taille limite de 40 Mo.");
         fileInput.value = "";  
     } else {
@@ -572,38 +572,49 @@ function downloadFile() {
     closeMenu(); 
 }
 //Option Favorie
-function addToFavorites() {
+function addToFavorites(element) {
     event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Add to Favorites',
         text: 'This folder has been added to favorites.',
         icon: 'success',
         confirmButtonText: 'OK'
+    }).then(() => {
+        // Ajouter le fichier aux favoris
+        window.location.href = urlBase;
     });
     closeMenu(); 
 }
 
 //Option Delete
-function moveToTrash() {
+function moveToTrash(element) {
     event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Confirmation',
-        text: 'Are you sure you want to move this folder to the trash?',
+        text: 'Are you sure you want to move this file/folder to the trash?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, move it',
         cancelButtonText: 'Cancel'
     }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire('Moved!', 'The folder has been moved to the trash.', 'success');
+                Swal.fire('Moved!', 'The file has been moved to the trash.', 'success');
+                // Mettre le fichier à la corbeille
+                window.location.href = urlBase;
             }
     });
     closeMenu(); 
 }
 
 //Option Rename Info
-function RenameFolder() {
+function RenameFolder(element) {
     event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    let urlBase = element.getAttribute('data-url-base');
     Swal.fire({
         title: 'Rename Folder',
         input: 'text',
@@ -618,7 +629,11 @@ function RenameFolder() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success');
+            Swal.fire('Renamed!', `The folder has been renamed to: ${result.value}`, 'success').then(() => {
+                urlBase = urlBase.replace('1', result.value);
+                urlBase = urlBase.replace('0', fileId);
+                window.location.href = urlBase;
+            });
         }
     });
     closeMenu(); 
@@ -722,7 +737,7 @@ function resetFilter(buttonId, chevronIconId) {
     resetChevron(document.getElementById(chevronIconId));
 }
 //Option Rename Info
-function NewFolder() {
+function NewFolder(element) {
     event.preventDefault();
     Swal.fire({
         title: 'New Folder',
@@ -738,7 +753,12 @@ function NewFolder() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire('New Folder!', `The folder has been created to: ${result.value}`, 'success');
+            let urlBase = element.getAttribute('data-url-base').replace('1', result.value);
+            urlBase = urlBase.replace('0', element.getAttribute('data-file-id'));
+            Swal.fire('New Folder!', `The folder has been created to: ${result.value}`, 'success').then(() => {
+                window.location.href = urlBase;
+            });
+
         }
     });
     closeMenu(); 
