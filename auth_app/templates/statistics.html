@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const usageData = {{ usage_data|safe }};
+    </script>
     <style>
         .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
     </style>
@@ -101,12 +104,13 @@
                             </div>
                             <div class="ml-3 flex-grow">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Documents</p>
-                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                                
+                                <p class="text-sm mt-[-3px] text-gray-500 ">{{ pdf_file_count }}</p>
                             </div>         
                         </div>    
-                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ total_pdf_size }} / 100 Mo</p>
                         <div class="bg-blue-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="progress-bar bg-blue-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                            <div class="progress-bar bg-blue-500 h-full" style="width: {{ total_pdf_size }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -120,12 +124,12 @@
                             </div>
                             <div class="ml-3 flex-grow">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Audio</p>
-                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">{{ mp3_file_count }}</p>
                             </div>         
                         </div>    
-                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ total_mp3_size }} / 100 Mo</p>
                         <div class="bg-green-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="progress-bar bg-green-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                            <div class="progress-bar bg-green-500 h-full" style="width: {{ total_mp3_size  }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -139,12 +143,12 @@
                             </div>
                             <div class="ml-3 flex-grow">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Pictures</p>
-                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">{{img_file_count}}</p>
                             </div>         
                         </div>    
-                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ total_img_size }} / 100 Mo</p>
                         <div class="bg-yellow-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="progress-bar bg-yellow-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                            <div class="progress-bar bg-yellow-500 h-full" style="width: {{total_img_size }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -158,12 +162,12 @@
                             </div>
                             <div class="ml-3 flex-grow">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-40 ">Video</p>
-                                <p class="text-sm mt-[-3px] text-gray-500 ">12 files</p>
+                                <p class="text-sm mt-[-3px] text-gray-500 ">{{ mp4_file_count }}</p>
                             </div>         
                         </div>    
-                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ all_user_files|sum_files_size|filesize_display }} / 100 Mo</p>
+                        <p class="text-custom-gray mt-[15px] mb-[10px] text-sm text-[var(--text-color)]">{{ total_mp4_size }} / 100 Mo</p>
                         <div class="bg-red-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="progress-bar bg-red-500 h-full" style="width: {{ all_user_files|sum_files_size|usage_percentage }}%;"></div>
+                            <div class="progress-bar bg-red-500 h-full" style="width: {{ total_mp4_size }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -179,7 +183,7 @@
             </select>
         </div>
             <canvas id="usageChart" width="800" height="200"></canvas>
-    </div>
+        </div>
     </div>  
 
 <!-- Popup Profil -->
@@ -198,6 +202,8 @@
         </div>
     </div>
 <script>
+
+
 // Obtenir la date actuelle pour générer dynamiquement les labels
 const currentDate = new Date();
 
@@ -242,12 +248,8 @@ function generateLabels(scale) {
 }
 
 // Structure des données (exemple de valeurs fixes pour chaque échelle)
-const dataSets = {
-  hour: Array(12).fill().map(() => ({ documents: Math.random() * 20, images: Math.random() * 15, videos: Math.random() * 25, autres: Math.random() * 10 })),
-  day: Array(7).fill().map(() => ({ documents: Math.random() * 50, images: Math.random() * 40, videos: Math.random() * 60, autres: Math.random() * 30 })),
-  month: Array(4).fill().map(() => ({ documents: Math.random() * 150, images: Math.random() * 120, videos: Math.random() * 200, autres: Math.random() * 100 })),
-  year: Array(5).fill().map(() => ({ documents: Math.random() * 500, images: Math.random() * 450, videos: Math.random() * 600, autres: Math.random() * 300 }))
-};
+
+const dataSets = usageData; // Utiliser les données du backend
 
 // Fonction pour obtenir les données en barres empilées avec les labels dynamiques
 function getStackedData(scale) {
@@ -262,8 +264,8 @@ function getStackedData(scale) {
       {
         label: 'Pictures',
         backgroundColor: '#facc15',
-        data: dataSets[scale].map(item => item.images),
-      },
+        data: dataSets[scale].map(item => item.images),  
+    },
       {
         label: 'Video',
         backgroundColor: '#ef4444',
@@ -272,7 +274,7 @@ function getStackedData(scale) {
       {
         label: 'Audio',
         backgroundColor: '#22c55e',
-        data: dataSets[scale].map(item => item.autres),
+        data: dataSets[scale].map(item => item.audio),
       },
     ],
   };
@@ -372,7 +374,9 @@ deleteAccountBtn.onclick = function() {
                 'Deleted!',
                 'Your account has been deleted.',
                 'success'
-            );
+            ).then(() => {
+                window.location.href = "{% url 'delete_account' %}";
+            });
         }
     })
 }

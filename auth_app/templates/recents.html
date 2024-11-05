@@ -388,7 +388,9 @@ deleteAccountBtn.onclick = function() {
                 'Deleted!',
                 'Your account has been deleted.',
                 'success'
-            );
+            ).then(() => {
+                window.location.href = "{% url 'delete_account' %}";
+            });
         }
     })
 }

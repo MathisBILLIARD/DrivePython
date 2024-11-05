@@ -52,3 +52,4 @@ def folder_name(folder_path):
     Extrait le nom du dossier à partir du chemin complet.
     """
     return os.path.basename(folder_path)
+

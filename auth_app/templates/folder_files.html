@@ -9,8 +9,110 @@
     <link rel="stylesheet" href="{% url 'style' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+
     <style>
         .sidebar.close{width:98px;}.sidebar.close .image-text img.open{display:none;}.sidebar.close .image-text img.close{width:32px;margin-left:12px;display:block;}.sidebar.close .text{opacity:0;}.sidebar.close .storage{display:none;}.sidebar.close ~ .home{left:98px;width:calc(100% - 98px);}    
+    
+        .modal {
+            display: none; /* Par défaut, les modales sont cachées */
+            position: fixed;
+            z-index: 1000; /* Au-dessus du contenu normal */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fond sombre */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #pdfViewer {
+            width: 60%; /* Largeur de l'iframe */
+            height: 100%; /* Hauteur de l'iframe */
+            border: none;
+        }
+
+        .hidden {
+            display: none; /* Cache la modale par défaut */
+        }
+
+        #pdfCanvas {
+            width: auto; /* Largeur automatique pour garder le ratio */
+            height: 90vh; /* Hauteur de 80% de la hauteur de la fenêtre */
+            max-width: 100%; /* Largeur maximum de 90% de la fenêtre */
+            border: 1px solid white; /* Bordure pour délimiter le canevas */
+        }
+
+        .pdf-navigation {
+            display: flex;
+            justify-content: space-between; /* Espace entre les boutons */
+            align-items: center; /* Centrer verticalement */
+            margin: 10px 0; /* Espacement autour de la barre de navigation */
+        }
+
+        .nav-button {
+            background-color: rgba(255, 255, 255, 0.5); /* Fond transparent */
+            border: none; /* Pas de bordure */
+            border-radius: 50%; /* Coins arrondis pour faire un bouton circulaire */
+            padding: 10px; /* Espacement intérieur */
+            font-size: 24px; /* Taille de police pour les flèches */
+            color: #333; /* Couleur du texte */
+            cursor: pointer; /* Curseur en forme de main */
+            transition: background-color 0.3s, transform 0.2s; /* Transition pour l'effet de survol */
+        }
+
+        .nav-button:hover {
+            background-color: rgba(255, 255, 255, 0.7); /* Légèrement plus opaque au survol */
+            transform: scale(1.1); /* Légère augmentation au survol */
+        }
+
+         /* Styles spécifiques au modal vidéo */
+         #videoModal {
+            width: 100%;
+            max-height: 100%;
+        }
+
+        #modalVideo {
+            width: 80%;
+            height: auto;
+        }
+
+        /* Styles spécifiques au modal audio */
+        #audioModal {
+            width: 80%;
+            max-height: 100%;
+        }
+
+        #modalAudio {
+            width: 100%;
+        }
+
+        /* Styles spécifiques au modal audio */
+        #audioModal {
+            width: 100%;
+            max-height: 100%;
+        }
+
+        #modalAudio {
+            width: 100%;
+        }
+        
     </style>
 </head>
 <body>
@@ -158,35 +260,17 @@
                     <i class='bx bx-chevron-down ml-2 text-[20px]' id="chevron-icon-type"></i>
                     </button>
                     <ul id="dropdown-type" class="absolute hidden bg-white shadow-lg rounded-md mt-1 min-w-max"> 
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Documents', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterTypes('Documents', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
                             <i class='bx bx-file mr-2'></i> Documents
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Spreadsheets', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-spreadsheet mr-2'></i> Spreadsheets
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Presentations', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-slideshow mr-2'></i> Presentations
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Forms', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-checkbox mr-2'></i> Forms
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Photos & Images', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterTypes('Photos & Images', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
                             <i class='bx bx-image mr-2'></i> Photos & Images
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('PDFs', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-file mr-2'></i> PDFs
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Videos', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterTypes('Videos', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
                             <i class='bx bx-video mr-2'></i> Videos
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Folders', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-folder mr-2'></i> Folders
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Audio', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterTypes('Audio', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
                             <i class='bx bx-music mr-2'></i> Audio
-                        </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Others', 'filter-btn-type', 'dropdown-type', 'chevron-icon-type')">
-                            <i class='bx bx-dots-horizontal-rounded mr-2'></i> Others
                         </li>
                     </ul>
                 </div>
@@ -290,11 +374,20 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 {% for file in folder_files %}
-                <div class="flex flex-col space-y-4"> 
+                <div class="flex flex-col space-y-4"  data-extension="{{ file.extension }}"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center justify-center">
-                                <i class="bx bx-folder text-black text-2xl"></i>
+
+                                {% if file.extension == '.pdf' %}
+                                    <img src="{% static 'images/pdf-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                                {% elif file.extension == '.png' or file.extension == '.jpg' or file.extension == '.jpeg' %}
+                                    <img src="{% static 'images/img-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                                {% elif file.extension == '.mp4' %}
+                                    <img src="{% static 'images/mp4-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                                {% elif file.extension == '.mp3' %}
+                                    <img src="{% static 'images/mp3-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                                {% endif %}
                             </div>
                             <div class="ml-3 flex-grow">
                                 <p class="font-semibold text-[16px] text-gray-800 truncate w-44">{{ file.file_name }} </p>
@@ -306,7 +399,7 @@
                                 <!-- Menu déroulant -->
                                 <div class="hidden absolute left-0 mt-1 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
                                     <ul>
-                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
+                                        <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'download_file' 0 %}" onclick="downloadFile(this)">
                                             <i class="bx bx-download mr-2"></i> Download
                                         </li>
                                         <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
@@ -327,9 +420,17 @@
                                 </div>
                             </div>            
                         </div>
-                        <div class="py-2">
-                            <img class="object-cover w-[100%] h-[82%] rounded-md" src="https://via.placeholder.com/300x200" alt="Image Placeholder">
-                        </div>
+                        <div class="py-2 flex justify-center items-center h-full">
+                            {% if file.extension == ".png" or file.extension == ".jpg" or file.extension == ".jpeg" %}
+                                <img class="object-cover rounded-md" style="width: 200px; height: 300px;" src="../../uploads/uploads/user_{{ request.user.id }}/previews/{{ file.file_name|slice:":-4" }}.png" onclick="openModal(this.src)">
+                            {% elif file.extension == ".pdf" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="../../uploads/uploads/user_{{ request.user.id }}/previews/{{ file.file_name|slice:":-4" }}.png" onclick="openPDF('../../uploads/{{ file.file_path }}');"> 
+                            {% elif file.extension == ".mp4" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="{% static 'images/mp4-icon.png' %}" onclick="openVideoModal('../../uploads/{{ file.file_path }}')">
+                            {% elif file.extension == ".mp3" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="{% static 'images/mp3-icon.png' %}" onclick="playAudio('../../uploads/{{ file.file_path }}')">                        
+                            {% endif %}                    
+                       </div>
                     </div>
                 </div>
                 {% empty %}
@@ -345,7 +446,7 @@
         <!-- List -->
         {% load custom_filter %}
         <div id="list-view" class="hidden flex flex-col" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
-            {% for file in files %}
+            {% for file in full_folder_files %}
             <div class="flex items-center border-t p-2 border-b border-gray-300">
                 <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg mr-4">
                     <i class="bx bx-folder text-black text-2xl"></i>
@@ -364,7 +465,7 @@
                     </div>
                     <div class="hidden absolute z-10 left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg -translate-x-[150px]">
                         <ul>
-                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onclick="downloadFile()">
+                            <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'download_file' 0 %}" onclick="downloadFile(this)">
                                 <i class="bx bx-download mr-2"></i> Download
                             </li>
                             <li class="flex items-center p-2 hover:bg-gray-100 cursor-pointer" data-file-id="{{ file.id }}" data-url-base="{% url 'rename_file' 0 1 %}" onclick="RenameFolder(this)">
@@ -412,6 +513,50 @@
             </button>
         </div>
     </div>
+
+       <!-- Modale pour l'image -->
+       <div id="imageModal" class="modal hidden" onclick="closeModal(event)">
+        <span class="close" onclick="closeModal(event)">&times;</span>
+        <img class="modal-content" id="modalImage" src="">
+    </div>
+
+    <!-- Modale pour le PDF -->
+     <!--
+    <div id="pdfModal" class="modal" onclick="closePDF(event)">
+        <span class="close" onclick="closePDF(event)">&times;</span>
+        <iframe id="pdfViewer" frameborder="0"></iframe>
+    </div> -->
+     <!-- Modale pour le PDF -->
+     <div id="pdfModal" class="modal" onclick="closePDF(event)">
+        <span class="close" onclick="closePDF(event)">&times;</span>
+        
+        <div class="pdf-navigation">
+            <button id="prevBtn" onclick="prevPage()" class="nav-button">
+                &#10094; <!-- Flèche gauche -->
+            </button>
+            <canvas id="pdfCanvas"></canvas>
+            <button id="nextBtn" onclick="nextPage()" class="nav-button">
+                &#10095; <!-- Flèche droite -->
+            </button>
+        </div>
+    </div>
+
+    <!-- Modale pour la vidéo -->
+    <div id="videoModal" class="modal" onclick="closeVideoModal(event)">
+        <span class="close" onclick="closeVideoModal(event)">&times;</span>
+        <video id="modalVideo" controls width="100%" height="auto">
+            <source id="videoSource" src="" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Modale pour l'audio -->
+    <div id="audioModal" class="modal" onclick="closeAudioModal(event)">
+        <span class="close" onclick="closeAudioModal(event)">&times;</span>
+        <audio id="modalAudio" controls>
+            <source id="audioSource" src="" type="audio/mp3">
+        </audio>
+    </div>
+
 
 <script>
     
@@ -502,7 +647,9 @@ deleteAccountBtn.onclick = function() {
                 'Deleted!',
                 'Your account has been deleted.',
                 'success'
-            );
+            ).then(() => {
+                window.location.href = "{% url 'delete_account' %}";
+            });
         }
     })
 }
@@ -561,15 +708,20 @@ function toggleMenuss(event) {
 }
 
 // Option Télécharger
-function downloadFile() {
+function downloadFile(element) {
     event.preventDefault();
+    const fileId = element.getAttribute('data-file-id');
+    const urlBase = element.getAttribute('data-url-base').replace('0', fileId);
     Swal.fire({
         title: 'Confirmation',
         text: 'The file has been successfully downloaded.',
         icon: 'success',
         confirmButtonText: 'OK'
+    }).then(() => {
+        // Télécharger le fichier
+        window.location.href = urlBase;
     });
-    closeMenu(); 
+    closeMenu();
 }
 //Option Favorie
 function addToFavorites(element) {
@@ -724,6 +876,70 @@ function selectFilter(filter, buttonId, dropdownId, chevronIconId) {
     filterBtn.classList.remove('border-gray-300');
     toggleDropdown(buttonId, dropdownId); 
 }
+
+
+// Sélection d'un filtre
+function selectFilterTypes(filter, buttonId, dropdownId, chevronIconId) {
+    const filterBtn = document.getElementById(buttonId);
+    const chevronIcon = document.getElementById(chevronIconId);
+
+    // Mise à jour du bouton de filtre avec l'option sélectionnée et ajout d'un bouton de réinitialisation
+    filterBtn.innerHTML = `
+      <span>${filter}</span>
+      <span class="h-5 mx-1"></span>
+      <i class='bx bx-chevron-down mr-[5px] text-[20px]' id="${chevronIconId}"></i>
+      <i class='bx bx-x ml-auto text-[20px] cursor-pointer' onclick="resetFilterTypes('${buttonId}', '${chevronIconId}', '${dropdownId}')"></i>
+    `;
+    filterBtn.classList.add('bg-gray-300', 'border-gray-300');
+    filterBtn.classList.remove('border-gray-300');
+
+    // Définir les extensions de fichier correspondant au filtre sélectionné
+    const typeExtensions = {
+        "Videos": [".mp4", ".avi", ".mkv"],
+        "Documents": [".pdf", ".docx", ".txt"],
+        "Photos & Images": [".jpg", ".jpeg", ".png", ".gif"],
+        "Audio": [".mp3", ".wav"]
+    };
+
+    // Récupérer les fichiers et les afficher selon le filtre sélectionné
+    const files = document.querySelectorAll('.flex.flex-col.space-y-4');
+    files.forEach(file => {
+        const fileExtension = file.getAttribute('data-extension');
+        // Vérification de nullité pour éviter les erreurs
+        if (fileExtension && (filter === "All" || typeExtensions[filter].includes(fileExtension.toLowerCase()))) {
+            file.style.display = "block";
+        } else {
+            file.style.display = "none";
+        }
+    });
+
+    // Fermer le menu déroulant après sélection
+    toggleDropdown(buttonId, dropdownId);
+
+    // Rotation de l'icône de chevron
+    chevronIcon.classList.toggle('rotate-180');
+}
+
+// Réinitialiser le filtre
+function resetFilterTypes(buttonId, chevronIconId, dropdownId) {
+    const filterBtn = document.getElementById(buttonId);
+    const chevronIcon = document.getElementById(chevronIconId);
+
+    // Réinitialisation du texte et des styles du bouton de filtre
+    filterBtn.innerHTML = `
+      <span>Type</span>
+      <i class='bx bx-chevron-down ml-2 text-[20px]' id="${chevronIconId}"></i>
+    `;
+    filterBtn.classList.remove('bg-gray-300', 'border-gray-300');
+
+    // Afficher tous les fichiers
+    const files = document.querySelectorAll('.flex.flex-col.space-y-4');
+    files.forEach(file => file.style.display = "block");
+
+    // Fermer le menu déroulant (si besoin)
+    toggleDropdown(buttonId, dropdownId);
+}
+
 // Réinitialisation d'un filtre
 function resetFilter(buttonId, chevronIconId) {
     const filterBtn = document.getElementById(buttonId);
@@ -884,6 +1100,161 @@ function drop(event) {
         // updateFileLocation(itemId, newLocation);
     }
 }
+
+
+function openModal(imageSrc) {
+            const modal = document.getElementById("imageModal");
+            const modalImage = document.getElementById("modalImage");
+
+            modalImage.src = imageSrc; // Définit la source de l'image dans la modale
+            modal.classList.remove("hidden"); // Affiche la modale
+            modal.style.display = "flex"; // Assurez-vous que la modale s'affiche en flex
+        }
+
+        function closeModal(event) {
+            // Ferme la modale si on clique en dehors de l'image ou sur la croix
+            if (event.target === document.getElementById("imageModal") || event.target.classList.contains('close')) {
+                const modal = document.getElementById("imageModal");
+                modal.classList.add("hidden"); // Cache la modale
+                modal.style.display = "none"; // Assurez-vous de la cacher
+            }
+        }
+
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+
+        function openPDF(pdfFileName) {
+            const pdfModal = document.getElementById("pdfModal");
+            const canvas = document.getElementById("pdfCanvas");
+            const context = canvas.getContext("2d");
+
+            pdfModal.style.display = "flex";
+
+            console.log(pdfFileName)
+
+            const loadingTask = pdfjsLib.getDocument(pdfFileName);
+            loadingTask.promise.then(function (pdf) {
+                pdfDoc = pdf;
+                // Affiche la première page
+                pageNum = 1;
+                renderPage(pageNum);
+            }).catch(function (error) {
+                console.error("Erreur lors du chargement du PDF :", error);
+            });
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                const scale = 2; // Ajuste la mise à l'échelle pour une meilleure visibilité
+                const viewport = page.getViewport({ scale: scale });
+
+                const canvas = document.getElementById("pdfCanvas");
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: canvas.getContext("2d"),
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function closePDF(event) {
+            // Ferme la modale si on clique en dehors du canevas ou sur la croix
+            if (event.target === document.getElementById("pdfModal") || event.target.classList.contains('close')) {
+                const pdfModal = document.getElementById("pdfModal");
+                pdfModal.style.display = "none"; // Cache la modale
+            }
+        }
+
+        function openVideoModal(videoPath) {
+            const modal = document.getElementById('videoModal');
+            const videoSource = document.getElementById('videoSource');
+            const modalVideo = document.getElementById('modalVideo');
+
+            console.log(videoPath); 
+            videoSource.src =  videoPath ; // Définir l'URL de la vidéo à afficher
+            modalVideo.load(); // Recharger la vidéo
+            modal.style.display = "flex"; // Afficher le modal
+        }
+
+        function closeVideoModal(event) {
+            // Vérifie si l'utilisateur a cliqué sur le modal ou sur la croix
+            if (event.target === document.getElementById('videoModal') || event.target.classList.contains('close')) {
+                const videoModal = document.getElementById('videoModal');
+                videoModal.style.display = "none"; // Masquer le modal
+
+                // Réinitialiser la vidéo
+                const modalVideo = document.getElementById('modalVideo');
+                modalVideo.pause(); // Arrêter la vidéo
+                modalVideo.currentTime = 0; // Revenir au début
+                const videoSource = document.getElementById('videoSource');
+                videoSource.src = ''; // Réinitialiser la source
+            }
+        }
+
+        function playAudio(audioUrl) {
+            const audioModal = document.getElementById('audioModal');
+            const audioSource = document.getElementById('audioSource');
+            const modalAudio = document.getElementById('modalAudio'); // Correction ici
+
+            audioSource.src = audioUrl; // Définir l'URL du fichier MP3
+            modalAudio.load(); // Recharger l'audio
+            audioModal.style.display = "flex"; // Afficher le modal
+        }
+
+
+        function closeAudioModal(event) {
+            if (event.target === document.getElementById('audioModal') || event.target.classList.contains('close')) {
+                const audioModal = document.getElementById('audioModal');
+                audioModal.style.display = "none"; // Masquer le modal
+
+                // Réinitialiser l'audio
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.pause(); // Arrêter l'audio
+                audioPlayer.currentTime = 0; // Revenir au début
+                const audioSource = document.getElementById('audioSource');
+                audioSource.src = ''; // Réinitialiser la source
+            }
+        }
+
+
 
 </script>    
 </body>

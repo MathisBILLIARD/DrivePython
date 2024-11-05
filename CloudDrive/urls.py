@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 from auth_app import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +14,8 @@ urlpatterns = [
     path('statistics/', views.statistics, name='statistics'),
     path('recents/', views.recents, name='recents'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
+    path('delete_account/', views.delete_account, name='delete_account'),
+    path('download_file/<int:file_id>/', views.download_file, name='download_file'),
     path('upload_file/', views.upload_file, name='upload_file'),
     path('upload_file_in_folder/<int:folder_id>/', views.upload_file_in_folder, name='upload_file_in_folder'),
     path('user_files/', views.user_files, name='user_files'),
@@ -35,3 +39,6 @@ urlpatterns = [
     path('style/', views.style, name='style'),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

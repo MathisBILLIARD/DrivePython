@@ -1,4 +1,5 @@
 import shutil
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm 
 from .form import CustomUserCreationForm
@@ -9,6 +10,13 @@ import os
 from django.conf import settings
 from django.core.files.storage import default_storage
 from .models import UploadedFile, Folder
+from django.db.models import Q
+from pdf2image import convert_from_path
+from PIL import Image
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Sum
+
 
 # Create your views here.
 def inscription(request):
@@ -37,36 +45,133 @@ def connexion(request):
 @login_required
 def acceuil(request):
     all_user_files = UploadedFile.objects.filter(user=request.user)
-    # Récupère tous  les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
+    # Retrieve all folders uploaded by the connected user that are not in the trash
     user_folders = Folder.objects.filter(user=request.user, trash=False)
     display_folders = [folder for folder in user_folders if os.path.basename(os.path.dirname(folder.folder_path)) not in [folder.folder_name for folder in user_folders]]
     # Récupère tous les fichiers uploades n'étant pas dans les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
+    # Retrieve all uploaded files not in the trash
     user_files = UploadedFile.objects.filter(user=request.user, trash=False)
-    # files not in user_folders
+    # Files not in user folders
     files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+
+    for file in user_files:
+        file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase
+        generate_preview(file, request.user)  # Pass the file and user
+
+        # Add the preview URL for use in the template
+        file.preview_url =  f'uploads/user_{request.user.id}/previews/{os.path.splitext(file.file_name)[0]}.png'
+
     return render(request, 'accueil.html', {'files': user_files, 'folders': display_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def display_folder(request, folder_id):
     # Récupérer les fichiers de l'utilisateur dans le dossier spécifié
+    all_user_files = UploadedFile.objects.filter(user=request.user)
     folderMain = Folder.objects.get(id=folder_id)
     user_files = UploadedFile.objects.filter(user=request.user, trash=False)
+    
+    # Fichiers spécifiques au dossier
     folder_files = [
         file for file in user_files
         if os.path.dirname(file.file_path) == folderMain.folder_path
     ]
-    # Récupérer les dossiers dans le dossier spécifié
+    
+    # Ajoutez l'extension pour chaque fichier dans `folder_files`
+    for file in folder_files:
+        file.extension = os.path.splitext(file.file_name)[1].lower()  # Obtenez l'extension en minuscules
+
+    # Récupérer les sous-dossiers dans le dossier spécifié
     user_folders = Folder.objects.filter(user=request.user, trash=False)
     folder_folders = [
         folder for folder in user_folders
         if os.path.basename(os.path.dirname(folder.folder_path)) == os.path.basename(folderMain.folder_path)
     ]
 
-    # Passer `folder_name` directement si vous n'avez pas d'objet `Folder` pour le dossier
-    return render(request, 'folder_files.html', {'files': user_files, 'folder_files': folder_files, 'folder_name': folderMain.folder_name, 'folder_id':folder_id, 'all_user_files': user_files, 'folders': folder_folders})
+    for file in user_files:
+        file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase
+        generate_preview(file, request.user)  # Pass the file and user
+
+        # Add the preview URL for use in the template
+        file.preview_url =  f'uploads/user_{request.user.id}/previews/{os.path.splitext(file.file_name)[0]}.png'
+
+    # Récupérer tous les fichiers à partir du dossier spécifié
+    full_folder_files = [
+        file for file in user_files
+        if os.path.dirname(file.file_path).startswith(folderMain.folder_path)
+    ]
+    
+
+    return render(request, 'folder_files.html', {
+        'files': user_files,
+        'folder_files': folder_files,
+        'folder_name': folderMain.folder_name,
+        'folder_id': folder_id,
+        'all_user_files': all_user_files,
+        'folders': folder_folders,
+        'full_folder_files' : full_folder_files
+    })
+
+def generate_preview(file, user):
+    user_folder = f'user_{user.id}'
+    destination_folder = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder)
+
+    # Create the previews directory if it doesn't exist
+    preview_folder = os.path.join(destination_folder, 'previews')
+    os.makedirs(preview_folder, exist_ok=True)
+
+    # Construct the output path using the original file name (without extension) for the preview
+    base_file_name = os.path.splitext(file.file_name)[0]  # Get the original file name without extension
+    output_path = os.path.join(preview_folder, f'{base_file_name}.png')
+
+    # Check if the preview already exists
+    if not os.path.exists(output_path):
+        if file.extension == '.pdf':
+            # For PDFs, convert the first page to a PNG image
+            images = convert_from_path(file.file_path, first_page=1, last_page=1)
+            if images:
+                images[0].save(output_path, 'PNG')
+        elif file.extension in ['.png', '.jpeg', '.jpg']:
+            # For images, save as PNG if necessary
+            image = Image.open(file.file_path)
+            image.save(output_path, 'PNG')
 
 def deconnexion(request):
     logout(request)
     return redirect('connexion')
+
+def delete_account(request):
+    user_files = UploadedFile.objects.filter(user=request.user)
+    user_folders = Folder.objects.filter(user=request.user)
+    # Supprimer tous les fichiers de l'utilisateur
+    for file in user_files:
+        file.delete()
+        os.remove(file.file_path)
+    # Supprimer tous les dossiers de l'utilisateur
+    for folder in user_folders:
+        folder.delete()
+        shutil.rmtree(folder.folder_path)
+    
+     # Supprimer le dossier utilisateur
+    user_folder = f'user_{request.user.id}'
+    user_folder_path = os.path.join(settings.MEDIA_ROOT, 'uploads', user_folder)
+    shutil.rmtree(user_folder_path)
+    # Supprimer l'utilisateur
+    request.user.delete()
+    return redirect('connexion')
+ 
+def download_file(request, file_id):
+    # Récupère le fichier à télécharger
+    file = UploadedFile.objects.get(id=file_id)
+    # Chemin du fichier à télécharger
+    file_path = file.file_path
+    # Nom du fichier à télécharger
+    file_name = file.file_name
+    # Ouverture du fichier en mode lecture binaire
+    with open(file_path, 'rb') as file:
+        response = HttpResponse(file.read(), content_type='application/force-download')
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        return response
+    
+    return redirect('accueil')
 
 def upload_file(request):
     if request.method == 'POST' and request.FILES['file']:
@@ -589,9 +694,131 @@ def recents(request):
     all_user_files = UploadedFile.objects.filter(user=request.user)
     return render(request, 'recents.html', {'all_user_files': all_user_files})
 
+
+# Fonction utilitaire pour calculer la taille des fichiers par type
+def get_usage_data(user_files, field):
+    return user_files.aggregate(total=Sum(field))['total'] or 0
+
 def statistics(request):
-    all_user_files = UploadedFile.objects.filter(user=request.user)
-    return render(request, 'statistics.html', {'all_user_files': all_user_files})
+    user_files = UploadedFile.objects.filter(user=request.user)
+    
+    # Compter et calculer la taille des fichiers par type
+    pdf_file_count = user_files.filter(file_name__endswith='.pdf').count()
+    mp3_file_count = user_files.filter(file_name__endswith='.mp3').count()
+    img_file_count = user_files.filter(
+        Q(file_name__endswith='.png') |
+        Q(file_name__endswith='.jpg') |
+        Q(file_name__endswith='.jpeg')
+    ).count()
+    mp4_file_count = user_files.filter(file_name__endswith='.mp4').count()
+    
+    total_pdf_size = sum(pdf.file_size for pdf in user_files.filter(file_name__endswith='.pdf'))
+    total_pdf_size_mo = round(total_pdf_size / (1024 * 1024), 2)
+    
+    total_mp3_size = sum(mp3.file_size for mp3 in user_files.filter(file_name__endswith='.mp3'))
+    total_mp3_size_mo = round(total_mp3_size / (1024 * 1024), 2)
+    
+    total_img_size = sum(
+        img.file_size for img in user_files.filter(
+            Q(file_name__endswith='.png') |
+            Q(file_name__endswith='.jpg') |
+            Q(file_name__endswith='.jpeg')
+        )
+    )
+    total_img_size_mo = round(total_img_size / (1024 * 1024), 2)
+    
+    total_mp4_size = sum(mp4.file_size for mp4 in user_files.filter(file_name__endswith='.mp4'))
+    total_mp4_size_mo = round(total_mp4_size / (1024 * 1024), 2)
+
+    # Périodes (heure, jour, mois, année)
+    now = timezone.now()
+    data = {'hour': [], 'day': [], 'month': [], 'year': []}
+
+        # Dernières 12 heures
+    for i in range(12):
+        end_time = now - timedelta(hours=i)
+        start_time = end_time - timedelta(hours=1)
+        files_in_hour = user_files.filter(upload_date__range=(start_time, end_time))
+        data['hour'].insert(0, {
+            'documents': get_usage_data(files_in_hour.filter(file_name__endswith='.pdf'), 'file_size') / (1024 * 1024),
+            'images': get_usage_data(files_in_hour.filter(
+                Q(file_name__endswith='.png') | 
+                Q(file_name__endswith='.jpg') | 
+                Q(file_name__endswith='.jpeg')
+            ), 'file_size') / (1024 * 1024),
+            'videos': get_usage_data(files_in_hour.filter(file_name__endswith='.mp4'), 'file_size') / (1024 * 1024),
+            'audio': get_usage_data(files_in_hour.filter(file_name__endswith='.mp3'), 'file_size') / (1024 * 1024),
+        })
+
+    # Derniers 7 jours
+    for i in range(7):
+        end_time = now - timedelta(days=i)
+        start_time = end_time - timedelta(days=1)
+        files_in_day = user_files.filter(upload_date__range=(start_time, end_time))
+        data['day'].insert(0, {
+            'documents': get_usage_data(files_in_day.filter(file_name__endswith='.pdf'), 'file_size') / (1024 * 1024),
+            'images': get_usage_data(files_in_day.filter(
+                Q(file_name__endswith='.png') | 
+                Q(file_name__endswith='.jpg') | 
+                Q(file_name__endswith='.jpeg')
+            ), 'file_size') / (1024 * 1024),
+            'videos': get_usage_data(files_in_day.filter(file_name__endswith='.mp4'), 'file_size') / (1024 * 1024),
+            'audio': get_usage_data(files_in_day.filter(file_name__endswith='.mp3'), 'file_size') / (1024 * 1024),
+        })
+
+    # Derniers 4 mois
+    for i in range(4):
+        end_time = now - timedelta(days=30 * i)
+        start_time = end_time - timedelta(days=30)
+        files_in_month = user_files.filter(upload_date__range=(start_time, end_time))
+        data['month'].insert(0, {
+            'documents': get_usage_data(files_in_month.filter(file_name__endswith='.pdf'), 'file_size') / (1024 * 1024),
+             'images': get_usage_data(files_in_day.filter(
+                Q(file_name__endswith='.png') | 
+                Q(file_name__endswith='.jpg') | 
+                Q(file_name__endswith='.jpeg')
+            ), 'file_size') / (1024 * 1024),
+            'videos': get_usage_data(files_in_month.filter(file_name__endswith='.mp4'), 'file_size') / (1024 * 1024),
+            'audio': get_usage_data(files_in_month.filter(file_name__endswith='.mp3'), 'file_size') / (1024 * 1024),
+        })
+
+    # Dernières 5 années
+    for i in range(5):
+        end_time = now - timedelta(days=365 * i)
+        start_time = end_time - timedelta(days=365)
+        files_in_year = user_files.filter(upload_date__range=(start_time, end_time))
+        data['year'].insert(0, {
+            'documents': get_usage_data(files_in_year.filter(file_name__endswith='.pdf'), 'file_size') / (1024 * 1024),
+            'images': get_usage_data(files_in_day.filter(
+                Q(file_name__endswith='.png') | 
+                Q(file_name__endswith='.jpg') | 
+                Q(file_name__endswith='.jpeg')
+            ), 'file_size') / (1024 * 1024),
+            'videos': get_usage_data(files_in_year.filter(file_name__endswith='.mp4'), 'file_size') / (1024 * 1024),
+            'audio': get_usage_data(files_in_year.filter(file_name__endswith='.mp3'), 'file_size') / (1024 * 1024),
+        })
+
+
+  
+
+
+
+    # Ajout des statistiques globales et périodiques au contexte
+    context = {
+        'all_user_files': user_files,
+        'pdf_file_count': pdf_file_count,
+        'mp3_file_count': mp3_file_count,
+        'img_file_count': img_file_count,
+        'mp4_file_count': mp4_file_count,
+        'total_pdf_size': total_pdf_size_mo,
+        'total_mp3_size': total_mp3_size_mo,
+        'total_img_size': total_img_size_mo,
+        'total_mp4_size': total_mp4_size_mo,
+        'usage_data': data
+    }
+
+    return render(request, 'statistics.html', context)
+
 
 def favorites(request):
     all_user_files = UploadedFile.objects.filter(user=request.user)
@@ -600,6 +827,15 @@ def favorites(request):
     user_folders = Folder.objects.filter(user=request.user, favorite=True)
     display_folders = [folder for folder in user_folders if os.path.basename(os.path.dirname(folder.folder_path)) not in [folder.folder_name for folder in user_folders]]
     files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+
+    for file in user_files:
+        file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase
+        generate_preview(file, request.user)  # Pass the file and user
+
+        # Add the preview URL for use in the template
+        file.preview_url =  f'uploads/user_{request.user.id}/previews/{os.path.splitext(file.file_name)[0]}.png'
+    
+
     return render(request, 'favorites.html', {'files': user_files, 'folders': display_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def user_files(request):
@@ -607,3 +843,4 @@ def user_files(request):
     user_files = UploadedFile.objects.filter(user=request.user)
     
     return render(request, 'user_files.html', {'files': user_files})
+
