@@ -215,7 +215,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 {% for file in files_not_folder %}
-                <div class="flex flex-col space-y-4"> 
+                <div class="flex flex-col space-y-4" data-extension="{{ file.extension }}" data-upload-date="{{ file.upload_date }}"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center justify-center">
@@ -242,7 +242,15 @@
                             </div>            
                         </div>
                         <div class="py-2">
-                            <img class="object-cover w-[100%] h-[82%] rounded-md" src="https://via.placeholder.com/300x200" alt="Image Placeholder">
+                            {% if file.extension == ".png" or file.extension == ".jpg" or file.extension == ".jpeg" %}
+                                <img class="object-cover rounded-md" style="width: 200px; height: 300px;" src="../../uploads/uploads/user_{{ request.user.id }}/previews/{{ file.file_name|slice:":-4" }}.png" onclick="openModal(this.src)">
+                            {% elif file.extension == ".pdf" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="../../uploads/uploads/user_{{ request.user.id }}/previews/{{ file.file_name|slice:":-4" }}.png" onclick="openPDF('../../uploads/{{ file.file_path }}');"> 
+                            {% elif file.extension == ".mp4" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="{% static 'images/mp4-icon.png' %}" onclick="openVideoModal('../../uploads/{{ file.file_path }}')">
+                            {% elif file.extension == ".mp3" %}
+                                <img class="object-cover rounded-md" style="width: 200px;  height: 300px; cursor: pointer;" src="{% static 'images/mp3-icon.png' %}" onclick="playAudio('../../uploads/{{ file.file_path }}')">                        
+                            {% endif %}    
                         </div>
                     </div>
                 </div>
@@ -607,6 +615,161 @@ links.forEach(link => {
         updateStyles(e.currentTarget, true);
     });
 });
+
+
+
+function openModal(imageSrc) {
+            const modal = document.getElementById("imageModal");
+            const modalImage = document.getElementById("modalImage");
+
+            modalImage.src = imageSrc; // Définit la source de l'image dans la modale
+            modal.classList.remove("hidden"); // Affiche la modale
+            modal.style.display = "flex"; // Assurez-vous que la modale s'affiche en flex
+        }
+
+        function closeModal(event) {
+            // Ferme la modale si on clique en dehors de l'image ou sur la croix
+            if (event.target === document.getElementById("imageModal") || event.target.classList.contains('close')) {
+                const modal = document.getElementById("imageModal");
+                modal.classList.add("hidden"); // Cache la modale
+                modal.style.display = "none"; // Assurez-vous de la cacher
+            }
+        }
+
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+
+        function openPDF(pdfFileName) {
+            const pdfModal = document.getElementById("pdfModal");
+            const canvas = document.getElementById("pdfCanvas");
+            const context = canvas.getContext("2d");
+
+            pdfModal.style.display = "flex";
+
+            console.log(pdfFileName)
+
+            const loadingTask = pdfjsLib.getDocument(pdfFileName);
+            loadingTask.promise.then(function (pdf) {
+                pdfDoc = pdf;
+                // Affiche la première page
+                pageNum = 1;
+                renderPage(pageNum);
+            }).catch(function (error) {
+                console.error("Erreur lors du chargement du PDF :", error);
+            });
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                const scale = 2; // Ajuste la mise à l'échelle pour une meilleure visibilité
+                const viewport = page.getViewport({ scale: scale });
+
+                const canvas = document.getElementById("pdfCanvas");
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: canvas.getContext("2d"),
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function closePDF(event) {
+            // Ferme la modale si on clique en dehors du canevas ou sur la croix
+            if (event.target === document.getElementById("pdfModal") || event.target.classList.contains('close')) {
+                const pdfModal = document.getElementById("pdfModal");
+                pdfModal.style.display = "none"; // Cache la modale
+            }
+        }
+
+        function openVideoModal(videoPath) {
+            const modal = document.getElementById('videoModal');
+            const videoSource = document.getElementById('videoSource');
+            const modalVideo = document.getElementById('modalVideo');
+
+            console.log(videoPath); 
+            videoSource.src =  videoPath ; // Définir l'URL de la vidéo à afficher
+            modalVideo.load(); // Recharger la vidéo
+            modal.style.display = "flex"; // Afficher le modal
+        }
+
+        function closeVideoModal(event) {
+            // Vérifie si l'utilisateur a cliqué sur le modal ou sur la croix
+            if (event.target === document.getElementById('videoModal') || event.target.classList.contains('close')) {
+                const videoModal = document.getElementById('videoModal');
+                videoModal.style.display = "none"; // Masquer le modal
+
+                // Réinitialiser la vidéo
+                const modalVideo = document.getElementById('modalVideo');
+                modalVideo.pause(); // Arrêter la vidéo
+                modalVideo.currentTime = 0; // Revenir au début
+                const videoSource = document.getElementById('videoSource');
+                videoSource.src = ''; // Réinitialiser la source
+            }
+        }
+
+        function playAudio(audioUrl) {
+            const audioModal = document.getElementById('audioModal');
+            const audioSource = document.getElementById('audioSource');
+            const modalAudio = document.getElementById('modalAudio'); // Correction ici
+
+            audioSource.src = audioUrl; // Définir l'URL du fichier MP3
+            modalAudio.load(); // Recharger l'audio
+            audioModal.style.display = "flex"; // Afficher le modal
+        }
+
+
+        function closeAudioModal(event) {
+            if (event.target === document.getElementById('audioModal') || event.target.classList.contains('close')) {
+                const audioModal = document.getElementById('audioModal');
+                audioModal.style.display = "none"; // Masquer le modal
+
+                // Réinitialiser l'audio
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.pause(); // Arrêter l'audio
+                audioPlayer.currentTime = 0; // Revenir au début
+                const audioSource = document.getElementById('audioSource');
+                audioSource.src = ''; // Réinitialiser la source
+            }
+        }
+
 </script>    
 </body>
 </html>

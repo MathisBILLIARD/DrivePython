@@ -52,7 +52,7 @@ def acceuil(request):
     # Retrieve all uploaded files not in the trash
     user_files = UploadedFile.objects.filter(user=request.user, trash=False)
     # Files not in user folders
-    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    files_not_folder = [file for file in user_files if os.path.dirname(file.file_path) not in [folder.folder_path for folder in user_folders]]
 
     for file in user_files:
         file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase
@@ -70,6 +70,7 @@ def display_folder(request, folder_id):
     user_files = UploadedFile.objects.filter(user=request.user, trash=False)
     
     # Fichiers spécifiques au dossier
+    # Fichiers spécifiques au dossier
     folder_files = [
         file for file in user_files
         if os.path.dirname(file.file_path) == folderMain.folder_path
@@ -83,7 +84,7 @@ def display_folder(request, folder_id):
     user_folders = Folder.objects.filter(user=request.user, trash=False)
     folder_folders = [
         folder for folder in user_folders
-        if os.path.basename(os.path.dirname(folder.folder_path)) == os.path.basename(folderMain.folder_path)
+        if os.path.dirname(folder.folder_path) == folderMain.folder_path
     ]
 
     for file in user_files:
@@ -96,7 +97,7 @@ def display_folder(request, folder_id):
     # Récupérer tous les fichiers à partir du dossier spécifié
     full_folder_files = [
         file for file in user_files
-        if os.path.dirname(file.file_path).startswith(folderMain.folder_path)
+        if (file.file_path).startswith(folderMain.folder_path + "/")
     ]
     
 
@@ -494,7 +495,7 @@ def add_favorite_folder(request, folder_id):
     user_files = UploadedFile.objects.filter(user=request.user)
     folder_files = [
         file for file in user_files
-        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+        if os.path.dirname(file.file_path) == folder.folder_path
     ]
     for file in folder_files:
         file.favorite = True
@@ -519,7 +520,7 @@ def remove_favorite_folder(request, folder_id):
     user_files = UploadedFile.objects.filter(user=request.user)
     folder_files = [
         file for file in user_files
-        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+        if os.path.dirname(file.file_path) == folder.folder_path
     ]
     for file in folder_files:
         file.favorite = False
@@ -554,7 +555,7 @@ def trash_folder(request, folder_id):
     user_files = UploadedFile.objects.filter(user=request.user)
     folder_files = [
         file for file in user_files
-        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+        if os.path.dirname(file.file_path) == folder.folder_path
     ]
     for file in folder_files:
         file.trash = True
@@ -567,6 +568,7 @@ def trash_folder(request, folder_id):
         folder1 for folder1 in user_folders
         if os.path.dirname(folder1.folder_path) == folder.folder_path
     ]
+
     for folder1 in folder_folders:
         trash_folder(request, folder1.id)
     folder.save()
@@ -587,7 +589,7 @@ def restore_folder(request, folder_id):
     user_files = UploadedFile.objects.filter(user=request.user)
     folder_files = [
         file for file in user_files
-        if os.path.basename(os.path.dirname(file.file_path)) == folder.folder_name
+        if os.path.dirname(file.file_path) == folder.folder_path
     ]
     for file in folder_files:
         file.trash = False
@@ -686,14 +688,30 @@ def trash(request):
     all_user_files = UploadedFile.objects.filter(user=request.user)
     user_files = UploadedFile.objects.filter(user=request.user, trash=True)
     user_folders = Folder.objects.filter(user=request.user, trash=True)
-    display_folders = [folder for folder in user_folders if os.path.basename(os.path.dirname(folder.folder_path)) not in [folder.folder_name for folder in user_folders]]
-    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    display_folders = [folder for folder in user_folders if os.path.dirname(folder.folder_path) not in [folder.folder_path for folder in user_folders]]
+    files_not_folder = [file for file in user_files if os.path.dirname(file.file_path) not in [folder.folder_path for folder in user_folders]]
     return render(request, 'trash.html', {'files': user_files, 'folders': display_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 def recents(request):
+     
     all_user_files = UploadedFile.objects.filter(user=request.user)
-    return render(request, 'recents.html', {'all_user_files': all_user_files})
+    # Retrieve all folders uploaded by the connected user that are not in the trash
+    user_folders = Folder.objects.filter(user=request.user, trash=False)
+    display_folders = [folder for folder in user_folders if os.path.basename(os.path.dirname(folder.folder_path)) not in [folder.folder_name for folder in user_folders]]
+    # Récupère tous les fichiers uploades n'étant pas dans les dossiers uploadés par l'utilisateur connecté n'étant pas dans la corbeille
+    # Retrieve all uploaded files not in the trash
+    user_files = UploadedFile.objects.filter(user=request.user, trash=False)
+    # Files not in user folders
+    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
 
+    for file in user_files:
+        file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase
+        generate_preview(file, request.user)  # Pass the file and user
+
+        # Add the preview URL for use in the template
+        file.preview_url =  f'uploads/user_{request.user.id}/previews/{os.path.splitext(file.file_name)[0]}.png'
+
+    return render(request, 'recents.html', {'files': user_files, 'folders': display_folders, 'files_not_folder': files_not_folder, 'all_user_files': all_user_files})
 
 # Fonction utilitaire pour calculer la taille des fichiers par type
 def get_usage_data(user_files, field):
@@ -825,8 +843,8 @@ def favorites(request):
     # Récupère tous les fichiers favoris de l'utilisateur connecté
     user_files = UploadedFile.objects.filter(user=request.user, favorite=True)
     user_folders = Folder.objects.filter(user=request.user, favorite=True)
-    display_folders = [folder for folder in user_folders if os.path.basename(os.path.dirname(folder.folder_path)) not in [folder.folder_name for folder in user_folders]]
-    files_not_folder = [file for file in user_files if os.path.basename(os.path.dirname(file.file_path)) not in [folder.folder_name for folder in user_folders]]
+    display_folders = [folder for folder in user_folders if os.path.dirname(folder.folder_path) not in [folder.folder_path for folder in user_folders]]
+    files_not_folder = [file for file in user_files if os.path.dirname(file.file_path) not in [folder.folder_path for folder in user_folders]]
 
     for file in user_files:
         file.extension = os.path.splitext(file.file_name)[1].lower()  # Get the extension and convert to lowercase

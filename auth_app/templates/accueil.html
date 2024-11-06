@@ -446,7 +446,15 @@
             {% for file in files %}
             <div class="flex items-center border-t p-2 border-b border-gray-300" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <div class="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg mr-4">
-                    <i class="bx bx-folder text-black text-2xl"></i>
+                    {% if file.extension == '.pdf' %}
+                        <img src="{% static 'images/pdf-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                    {% elif file.extension == '.png' or file.extension == '.jpg' or file.extension == '.jpeg' %}
+                        <img src="{% static 'images/img-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                    {% elif file.extension == '.mp4' %}
+                        <img src="{% static 'images/mp4-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                    {% elif file.extension == '.mp3' %}
+                        <img src="{% static 'images/mp3-icon.png' %}" alt="PDF" class="text-2xl" style="width: 35px; height: 35px;"/>
+                    {% endif %}
                 </div>
                 <p class="text-black font-[300] text-base mr-4 flex-grow" style="min-width: 200px;">
                     {{ file.file_name|truncatechars:20 }}

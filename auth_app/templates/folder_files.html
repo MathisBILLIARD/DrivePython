@@ -281,16 +281,16 @@
                         <i class='bx bx-chevron-down ml-2 text-[20px]' id="chevron-icon-date"></i>
                     </button>
                     <ul id="dropdown-date" class="absolute hidden bg-white shadow-lg rounded-md mt-1 min-w-max "> 
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Today', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterDate('Today', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
                             <i class='bx bx-calendar-check mr-2'></i> Today
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Last 7 days', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterDate('Last 7 days', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
                             <i class='bx bx-calendar-week mr-2'></i> Last 7 days
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('Last 30 days', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterDate('Last 30 days', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
                             <i class='bx bx-calendar mr-2'></i> Last 30 days
                         </li>
-                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilter('This Year (2024)', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
+                        <li class="hover:bg-gray-100 cursor-pointer px-4 py-2 flex items-center transition-colors ease-in-out duration-200" onclick="selectFilterDate('This Year (2024)', 'filter-btn-date', 'dropdown-date', 'chevron-icon-date')">
                             <i class='bx bx-calendar-event mr-2'></i> This Year (2024)
                         </li>
                     </ul>
@@ -374,7 +374,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 {% for file in folder_files %}
-                <div class="flex flex-col space-y-4"  data-extension="{{ file.extension }}"> 
+                <div class="flex flex-col space-y-4"  data-extension="{{ file.extension }}" data-upload-date="{{ file.upload_date }}"> 
                     <div class="items-center justify-between p-2 bg-[#f6f6f9] rounded-lg hover:border-gray-300 border border-gray-100" draggable="true" ondragstart="dragStart(event)" ondragover="allowDrop(event)" ondrop="drop(event)">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center justify-center">
@@ -939,6 +939,172 @@ function resetFilterTypes(buttonId, chevronIconId, dropdownId) {
     // Fermer le menu déroulant (si besoin)
     toggleDropdown(buttonId, dropdownId);
 }
+
+function selectFilterDate(filter, buttonId, dropdownId, chevronIconId) {
+    const filterBtn = document.getElementById(buttonId);
+    const chevronIcon = document.getElementById(chevronIconId);
+
+    // Mise à jour du bouton de filtre avec l'option sélectionnée et ajout d'un bouton de réinitialisation
+    filterBtn.innerHTML = `
+      <span>${filter}</span>
+      <span class="h-5 mx-1"></span>
+      <i class='bx bx-chevron-down mr-[5px] text-[20px]' id="${chevronIconId}"></i>
+      <i class='bx bx-x ml-auto text-[20px] cursor-pointer' onclick="resetFilterDate('${buttonId}', '${chevronIconId}', '${dropdownId}')"></i>
+    `;
+    filterBtn.classList.add('bg-gray-300', 'border-gray-300');
+    filterBtn.classList.remove('border-gray-300');
+
+    // Récupérer la date actuelle
+    const today = new Date();
+    const formattedToday = today.toISOString().slice(0, 10);  // format "YYYY-MM-DD"
+    console.log("Today's date:", formattedToday); // Debug: Afficher la date d'aujourd'hui
+
+    // Récupérer les fichiers et les afficher selon le filtre sélectionné
+    const files = document.querySelectorAll('.flex.flex-col.space-y-4');
+    files.forEach(file => {
+        const fileDate = file.getAttribute('data-upload-date'); // Exemple : "Nov. 6, 2024, 1:36 a.m."
+ 
+        const formattedFileDate = convertToDate(fileDate);  // Convertit la date en format "YYYY-MM-DD"
+
+        if (formattedFileDate === null) {
+            file.style.display = 'none';  // Masquer le fichier si la date est invalide
+            return;  // Ne pas traiter ce fichier
+        }
+
+        // Comparer la date du fichier avec la date actuelle selon le filtre sélectionné
+        if (filter === "Today" && formattedFileDate === formattedToday) {
+            file.style.display = "block";  // Afficher si la date correspond à aujourd'hui
+        } else if (filter === "Last 7 days" && isWithinLastNDays(formattedFileDate, 7)) {
+            file.style.display = "block";  // Afficher si la date est dans les 7 derniers jours
+        } else if (filter === "Last 30 days" && isWithinThisMonth(formattedFileDate)) {
+            file.style.display = "block";  // Afficher si la date est dans le mois actuel
+        } else if (filter === "This Year (2024)" && formattedFileDate.startsWith("2024")) {
+            file.style.display = "block";  // Afficher si la date est dans l'année 2024
+        } else if (filter === "All") {
+            file.style.display = "block";  // Afficher tous les fichiers
+        } else {
+            console.log("Hiding file for filter:", filter);
+            file.style.display = "none";  // Masquer si la date ne correspond
+        }
+    });
+
+    // Fermer le menu déroulant après sélection
+    toggleDropdown(buttonId, dropdownId);
+
+    // Rotation de l'icône de chevron
+    chevronIcon.classList.toggle('rotate-180');
+}
+
+function resetFilterDate(buttonId, chevronIconId, dropdownId) {
+    const filterBtn = document.getElementById(buttonId);
+    const chevronIcon = document.getElementById(chevronIconId);
+
+    // Réinitialisation du texte et des styles du bouton de filtre
+    filterBtn.innerHTML = `
+      <span>Date</span>
+      <i class='bx bx-chevron-down ml-2 text-[20px]' id="${chevronIconId}"></i>
+    `;
+    filterBtn.classList.remove('bg-gray-300', 'border-gray-300');
+
+    // Afficher tous les fichiers (quel que soit leur filtre de date)
+    const files = document.querySelectorAll('.flex.flex-col.space-y-4');
+    files.forEach(file => file.style.display = "block");  // Afficher tous les fichiers
+
+    // Fermer le menu déroulant
+    toggleDropdown(buttonId, dropdownId);
+}
+
+function isWithinLastNDays(dateString, days) {
+    const date = new Date(dateString); // Convertir la date en objet Date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Mettre à zéro l'heure pour la comparaison
+
+    // Calculer la différence en jours entre la date actuelle et la date du fichier
+    const timeDifference = today - date;
+    const daysDifference = timeDifference / (1000 * 3600 * 24); // Convertir la différence en jours
+
+
+
+    console.log(`Days difference for ${dateString}:`, daysDifference); // Affichage pour déboguer
+
+    return  daysDifference <= days; // Vérifier si la différence est dans la plage de N jours
+}
+
+function isWithinThisMonth(dateString) {
+    const date = new Date(dateString);
+    const today = new Date();
+
+    console.log("Mois : ", date, today)
+
+    // Vérifier si l'année et le mois du fichier correspondent à ceux de la date actuelle
+    return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth();
+}
+
+
+// Convertir la date en format "YYYY-MM-DD"
+function convertToDate(dateString) {
+    // Mois abrégés
+    const monthNames = {
+        "Jan.": "January",
+        "Feb.": "February",
+        "Mar.": "March",
+        "Apr.": "April",
+        "May": "May",
+        "Jun.": "June",
+        "Jul.": "July",
+        "Aug.": "August",
+        "Sep.": "September",
+        "Oct.": "October",
+        "Nov.": "November",
+        "Dec.": "December"
+    };
+
+    // Vérification si la date est vide ou invalide
+    if (!dateString) {
+        console.error("Date is missing or invalid:", dateString);
+        return null;
+    }
+
+    // Séparation de la date de l'heure (en supposant que le format est "Nov. 6, 2024, 1:36 a.m.")
+    const dateParts = dateString.split(',')[0].trim().split(' ');  // "Nov.", "6", "2024"
+
+    // Extraire le mois, le jour et l'année correctement
+    const month = monthNames[dateParts[0]];  // Mois complet
+    const day = parseInt(dateParts[1], 10);  // Jour
+    const year = parseInt(dateString.split(',')[1].trim(), 10);  // Année extraite après la virgule
+
+    console.log("date décomposé : ", day, month, year);  // Debug: Afficher les variables day, month, year
+
+    // Vérification si la date est valide
+    if (!month || isNaN(day) || isNaN(year)) {
+        console.error("Invalid date part:", dateString);
+        return null;
+    }
+
+    // Créer un objet Date en UTC sans l'heure (00:00:00)
+    const dateStringForJs = `${month} ${day}, ${year} UTC`;
+    const date = new Date(dateStringForJs);
+
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+        console.error("Invalid date:", dateString);
+        return null;
+    }
+
+    // Retourner la date au format "YYYY-MM-DD"
+    return date.toISOString().slice(0, 10);  // Format "YYYY-MM-DD"
+}
+
+
+// Code pour fermer le dropdown après sélection
+function toggleDropdown(buttonId, dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.classList.toggle('hidden');
+    const button = document.getElementById(buttonId);
+    button.classList.toggle('bg-gray-200');
+}
+
+
 
 // Réinitialisation d'un filtre
 function resetFilter(buttonId, chevronIconId) {
